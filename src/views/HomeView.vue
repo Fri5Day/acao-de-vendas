@@ -1,27 +1,36 @@
 <template>
-  <main>
+  <v-app>
     <NavbarComponent />
-    <v-container>
-      <v-row>
-        <v-col cols="12" md="4" v-for="produto in produtos" :key="produto.item">
-          <v-card class="mx-auto" max-width="400">
-            <v-card-title>{{ produto.descricao }}</v-card-title>
-            <v-card-subtitle class="pt-4">Código do Item: {{ produto.item }}</v-card-subtitle>
+    <main style="margin-top: 64px">
+      <v-container>
+        <v-row>
+          <v-col
+            v-for="produto in produtos"
+            :key="produto.item"
+            cols="12"
+            sm="6"
+            md="4"
+            class="mb-4"
+          >
+            <v-card>
+              <v-card-title>{{ produto.descricao }}</v-card-title>
+              <v-card-subtitle class="pt-4">Código do Item: {{ produto.item }}</v-card-subtitle>
 
-            <v-card-text>
-              <div>Variação: {{ produto.desVariacao }}</div>
-              <div>Cor: {{ produto.desCor }}</div>
-              <div>Acabamento: {{ produto.desAcabamento }}</div>
-            </v-card-text>
+              <v-card-text>
+                <div>Variação: {{ produto.desVariacao }}</div>
+                <div>Cor: {{ produto.desCor }}</div>
+                <div>Acabamento: {{ produto.desAcabamento }}</div>
+              </v-card-text>
 
-            <v-card-actions>
-              <v-btn color="orange" text="Ver mais" />
-            </v-card-actions>
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-container>
-  </main>
+              <v-card-actions>
+                <v-btn color="orange" text="Ver mais"></v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </main>
+  </v-app>
 </template>
 
 <script setup lang="ts">
@@ -46,7 +55,6 @@ onMounted(async () => {
           Authorization: `Bearer ${token}`
         }
       })
-
       produtos.value = response.data
     } catch (error) {
       console.error('Erro ao buscar os dados da API:', error)
