@@ -44,10 +44,16 @@
               <v-alert type="info"> Nenhum item encontrado com o filtro aplicado. </v-alert>
             </v-col>
           </v-row>
-
-         
         </template>
       </v-container>
+      
+      <!-- Componente de erro -->
+      <ErrorComponent
+        :errorMessage="errorMessage"
+        text="Erro na listagem dos itens"
+        :isActive="showErrorDialog"
+        @update:isActive="showErrorDialog = $event"
+      />
     </main>
   </v-app>
 </template>
@@ -62,6 +68,7 @@ import { filterProducts } from '@/services/filterService'
 // Componentes
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FilterComponent from '@/components/FilterComponent.vue'
+import ErrorComponent from '@/components/ErrorComponent.vue'
 
 // Interface
 import type FilterPayload from '@/interface/filter'
@@ -71,13 +78,29 @@ import type ItemInterface from '@/interface/item'
 const produtos = ref<ItemInterface[]>([])
 const filteredProducts = ref<ItemInterface[]>([])
 const isLoading = ref<boolean>(true)
+const errorMessage = ref('')
+const showErrorDialog = ref(false)
 
 // Função para buscar os itens
 onMounted(async () => {
-  isLoading.value = true 
-  produtos.value = await fetchProducts() 
-  filteredProducts.value = produtos.value 
-  isLoading.value = false 
+  try {
+    isLoading.value = true
+    const { produtos: fetchedProducts, error } = await fetchProducts()
+
+    if (error) {
+      console.log('passou')
+      errorMessage.value = error
+      showErrorDialog.value = true
+    } else {
+      produtos.value = fetchedProducts
+      filteredProducts.value = fetchedProducts
+    }
+  } catch (err) {
+    errorMessage.value = 'Ocorreu um erro inesperado.'
+    showErrorDialog.value = true
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // Função para aplicar filtro
@@ -87,8 +110,10 @@ const applyFilter = (filter: FilterPayload) => {
   if (value) {
     const filtered = filterProducts(produtos.value, type, value)
     filteredProducts.value = filtered
+  } // remover else, provisorio.
+  else {
+    const filtered = filterProducts(produtos.value, type, value)
+    filteredProducts.value = [...filtered]
   }
-
 }
-
 </script>

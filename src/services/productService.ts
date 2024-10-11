@@ -1,11 +1,9 @@
-import { ref } from 'vue';
 import { api } from '@/services/api';
 import type ItemInterface from '@/interface/item';
 
 const token = import.meta.env.VITE_API_TOKEN;
 
-export const fetchProducts = async (): Promise<ItemInterface[]> => { 
-  const produtos = ref<ItemInterface[]>([]);
+export const fetchProducts = async (): Promise<{ produtos: ItemInterface[]; error?: string }> => { 
   try {
     const response = await api.get('/TSMCadGR_Unidades_Codificacao.ExecutarMetodoInterpretado', {
       params: {
@@ -16,9 +14,10 @@ export const fetchProducts = async (): Promise<ItemInterface[]> => {
         Authorization: `Bearer ${token}`
       }
     });
-    produtos.value = response.data;
-  } catch (error) {
+    return { produtos: response.data };
+  } catch (error: any) {
     console.error('Erro ao buscar os dados da API:', error);
+    const errorMessage = error.response?.data || 'Erro desconhecido ao buscar dados da API';
+    return { produtos: [], error: errorMessage }; 
   }
-  return produtos.value; 
 };
