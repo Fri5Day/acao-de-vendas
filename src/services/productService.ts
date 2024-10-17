@@ -17,7 +17,7 @@ export const fetchProducts = async (): Promise<{ produtos: ItemInterface[]; erro
     return { produtos: response.data };
   } catch (error: any) {
     console.error('Erro ao buscar os dados da API:', error);
-    const errorMessage = error.response?.data || 'Erro desconhecido ao buscar dados da API';
+    const errorMessage = error.response?.data || 'Falha na cominucação com a API, verifique sua conexão com a rede.';
     return { produtos: [], error: errorMessage }; 
   }
 };

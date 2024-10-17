@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <NavbarComponent />
-    <FilterComponent @filter="applyFilter" />
+    <FilterComponent @filter="applyFilter" @apply-more-filters="applyMoreFilters" />
     <main style="margin-top: 64px">
       <v-container>
         <!-- Exibe o spinner durante o carregamento -->
@@ -16,11 +16,11 @@
           <v-chip variant="outlined"> Total itens filtrados: {{ filteredProducts.length }} </v-chip>
           <v-row>
             <v-col
-              v-for="(produto, index) in filteredProducts"
+              v-for="(produto, index) in paginatedProducts"
               :key="index"
               cols="12"
               sm="6"
-              md="4"
+              md="3"
               class="mb-4 mt-10"
             >
               <v-card>
@@ -34,7 +34,7 @@
                 </v-card-text>
 
                 <v-card-actions>
-                  <v-btn color="orange" text="Ver mais"></v-btn>
+                  <v-btn color="primary" text="Ver Mais" />
                 </v-card-actions>
               </v-card>
             </v-col>
@@ -46,33 +46,41 @@
           </v-row>
         </template>
       </v-container>
-      
-      <!-- Componente de erro -->
+
       <ErrorComponent
         :errorMessage="errorMessage"
         text="Erro na listagem dos itens"
         :isActive="showErrorDialog"
         @update:isActive="showErrorDialog = $event"
       />
+
+      <Pagination
+        :total-items="filteredProducts.length"
+        :current-page="currentPage"
+        @page-changed="changePage"
+      />
     </main>
   </v-app>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 // Serviços
 import { fetchProducts } from '@/services/productService'
-import { filterProducts } from '@/services/filterService'
+import { filterProducts } from '@/utils/filter/filterService'
+import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
 
 // Componentes
 import NavbarComponent from '@/components/NavbarComponent.vue'
-import FilterComponent from '@/components/FilterComponent.vue'
+import FilterComponent from '@/components/filter/FilterComponent.vue'
 import ErrorComponent from '@/components/ErrorComponent.vue'
+import Pagination from '@/components/PaginationComponent.vue'
 
 // Interface
 import type FilterPayload from '@/interface/filter'
 import type ItemInterface from '@/interface/item'
+import type AdditionalFilters from '@/interface/moreFilter'
 
 // Variáveis de estado
 const produtos = ref<ItemInterface[]>([])
@@ -80,6 +88,8 @@ const filteredProducts = ref<ItemInterface[]>([])
 const isLoading = ref<boolean>(true)
 const errorMessage = ref('')
 const showErrorDialog = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 12
 
 // Função para buscar os itens
 onMounted(async () => {
@@ -88,7 +98,6 @@ onMounted(async () => {
     const { produtos: fetchedProducts, error } = await fetchProducts()
 
     if (error) {
-      console.log('passou')
       errorMessage.value = error
       showErrorDialog.value = true
     } else {
@@ -103,6 +112,13 @@ onMounted(async () => {
   }
 })
 
+// Computed property para calcular os produtos paginados
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredProducts.value.slice(start, end)
+})
+
 // Função para aplicar filtro
 const applyFilter = (filter: FilterPayload) => {
   const { type, value } = filter
@@ -110,10 +126,21 @@ const applyFilter = (filter: FilterPayload) => {
   if (value) {
     const filtered = filterProducts(produtos.value, type, value)
     filteredProducts.value = filtered
-  } // remover else, provisorio.
-  else {
-    const filtered = filterProducts(produtos.value, type, value)
-    filteredProducts.value = [...filtered]
+  } else {
+    filteredProducts.value = [...produtos.value]
   }
+  currentPage.value = 1 // Resetar a página ao aplicar novo filtro
+}
+
+// Função para aplicar filtros adicionais
+const applyMoreFilters = (filters: AdditionalFilters) => {
+  const filtered = applyAdditionalFilters(produtos.value, filters)
+  filteredProducts.value = filtered
+  currentPage.value = 1 // Resetar a página ao aplicar novo filtro
+}
+
+// Função para alterar a página
+const changePage = (page: number) => {
+  currentPage.value = page
 }
 </script>

@@ -34,26 +34,46 @@
           ></v-text-field>
         </v-col>
 
-        <v-col cols="3">
+        <v-col cols="5" md="3">
           <v-btn color="primary" @click="emitFilter" elevation="2" class="full-width">Buscar</v-btn>
+        </v-col>
+
+        <v-col cols="5" md="3">
+          <v-btn color="secondary" @click="openMoreFiltersDialog" elevation="2" class="full-width">+Filtros</v-btn>
         </v-col>
       </v-row>
     </v-card>
+
+    <!-- Componente MoreFilterComponent com o dialog controlado via prop -->
+    <MoreFilterComponent
+      :dialog="showMoreFiltersDialog"
+      @apply-more-filters="onApplyMoreFilters"
+      @update:dialog="onClose"
+    />
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, defineEmits } from 'vue'
+import MoreFilterComponent from '@/components/filter/MoreFilterComponent.vue'
 
+// Define os eventos que este componente emitirá
 const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
+  (e: 'apply-more-filters', filters: { variation: string; color: string; finish: string }): void
 }>()
 
+// Estado do filtro
 const filterType = ref('Descrição')
 const filterValue = ref('')
 
+// Opções de filtro
 const filterOptions = ['Descrição', 'Código']
 
+// Controle do diálogo de filtros adicionais
+const showMoreFiltersDialog = ref(false)
+
+// Emite o evento de filtro para o componente pai
 const emitFilter = () => {
   if (filterValue.value.trim()) {
     emit('filter', {
@@ -63,9 +83,27 @@ const emitFilter = () => {
   } else {
     emit('filter', {
       type: filterType.value,
-      value: '' 
+      value: ''
     })
   }
+}
+
+// Abre o diálogo de filtros adicionais
+const openMoreFiltersDialog = () => {
+  showMoreFiltersDialog.value = true
+}
+
+// Lida com a aplicação de mais filtros
+const onApplyMoreFilters = (filters: { variation: string; color: string; finish: string }) => {
+  console.log('Filtros adicionais aplicados:', filters)
+  emit('apply-more-filters', filters) // Emitindo os filtros adicionais
+  showMoreFiltersDialog.value = false
+}
+
+
+// Fecha o diálogo de filtros adicionais
+const onClose = () => {
+  showMoreFiltersDialog.value = false
 }
 </script>
 
