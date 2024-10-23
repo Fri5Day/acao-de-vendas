@@ -44,7 +44,6 @@
       </v-row>
     </v-card>
 
-    <!-- Componente MoreFilterComponent com o dialog controlado via prop -->
     <MoreFilterComponent
       :dialog="showMoreFiltersDialog"
       @apply-more-filters="onApplyMoreFilters"
@@ -67,7 +66,6 @@ const emit = defineEmits<{
 const filterType = ref('Descrição')
 const filterValue = ref('')
 
-// Opções de filtro
 const filterOptions = ['Descrição', 'Código']
 
 // Controle do diálogo de filtros adicionais
