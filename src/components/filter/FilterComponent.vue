@@ -95,8 +95,7 @@ const openMoreFiltersDialog = () => {
 
 // Lida com a aplicação de mais filtros
 const onApplyMoreFilters = (filters: { variation: string; color: string; finish: string }) => {
-  console.log('Filtros adicionais aplicados:', filters)
-  emit('apply-more-filters', filters) // Emitindo os filtros adicionais
+  emit('apply-more-filters', filters) 
   showMoreFiltersDialog.value = false
 }
 

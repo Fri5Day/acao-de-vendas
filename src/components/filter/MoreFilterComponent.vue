@@ -47,7 +47,7 @@ const finishes = ref<string[]>([])
 
 // Função para buscar as opções de filtro da API
 const loadFilterOptions = async () => {
-  const { produtos, error } = await fetchProducts()
+  const { products, error } = await fetchProducts()
 
   if (error) {
     console.error('Erro ao carregar filtros:', error)
@@ -55,9 +55,9 @@ const loadFilterOptions = async () => {
   }
 
   // Preenchendo as opções de filtro com base nos dados da API
-  variations.value = [...new Set(produtos.map((p) => p.desVariacao))]
-  colors.value = [...new Set(produtos.map((p) => p.desCor))]
-  finishes.value = [...new Set(produtos.map((p) => p.desAcabamento))]
+  variations.value = [...new Set(products.map((p) => p.desVariacao))]
+  colors.value = [...new Set(products.map((p) => p.desCor))]
+  finishes.value = [...new Set(products.map((p) => p.desAcabamento))]
 }
 
 // Função para aplicar os filtros
@@ -68,12 +68,11 @@ const applyFilters = () => {
     finish: selectedFinish.value || ''
   }
   emit('apply-more-filters', filters)
-  closeDialog() // Fecha o diálogo após aplicar os filtros
+  closeDialog() 
 }
 
-// Fechar o diálogo
 const closeDialog = () => {
-  emit('update:dialog', false) // Emite evento para atualizar o estado do diálogo no componente pai
+  emit('update:dialog', false) 
 }
 
 // Observe a prop `dialog` para atualizar o estado local

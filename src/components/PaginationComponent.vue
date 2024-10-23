@@ -30,7 +30,7 @@ const emit = defineEmits(['page-changed'])
 
 const page = ref(props.currentPage)
 const itemsPerPage = 12
-console.log('page:', page)
+
 
 // Computed para calcular o número total de páginas
 const totalPages = computed(() => {
@@ -47,10 +47,8 @@ watch(
 
 // Emitir o evento de mudança de página
 const onPageChange = (newPage: number) => {
-  console.log('page antes:', newPage)
   page.value = newPage
   emit('page-changed', newPage)
-  console.log('page depois:', newPage)
 }
 
 </script>

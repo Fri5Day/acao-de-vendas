@@ -3,7 +3,7 @@ import type ItemInterface from '@/interface/item';
 
 const token = import.meta.env.VITE_API_TOKEN;
 
-export const fetchProducts = async (): Promise<{ produtos: ItemInterface[]; error?: string }> => { 
+export const fetchProducts = async (): Promise<{ products: ItemInterface[]; error?: string }> => { 
   try {
     const response = await api.get('/TSMCadGR_Unidades_Codificacao.ExecutarMetodoInterpretado', {
       params: {
@@ -14,10 +14,10 @@ export const fetchProducts = async (): Promise<{ produtos: ItemInterface[]; erro
         Authorization: `Bearer ${token}`
       }
     });
-    return { produtos: response.data };
+    return { products: response.data };
   } catch (error: any) {
     console.error('Erro ao buscar os dados da API:', error);
     const errorMessage = error.response?.data || 'Falha na cominucação com a API, verifique sua conexão com a rede.';
-    return { produtos: [], error: errorMessage }; 
+    return { products: [], error: errorMessage }; 
   }
 };
