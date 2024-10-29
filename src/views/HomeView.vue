@@ -7,7 +7,7 @@
         <v-row justify="center" v-if="isLoading">
           <v-col cols="12" class="text-center">
             <v-progress-circular indeterminate color="primary"></v-progress-circular>
-            <p>Carregando produtos...</p>
+            <p>Carregando Itens...</p>
           </v-col>
         </v-row>
 
