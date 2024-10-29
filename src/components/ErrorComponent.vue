@@ -4,7 +4,7 @@
       <v-card-title class="headline">{{ text }}</v-card-title>
       <v-card-text>{{ errorMessage }}</v-card-text>
       <v-card-actions>
-        <v-btn color="primary" @click="closeDialog">Fechar</v-btn>
+        <v-btn color="error" @click="closeDialog">Fechar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

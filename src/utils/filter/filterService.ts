@@ -1,13 +1,13 @@
 import type ItemInterface from '@/interface/item';
 
-export const filterProducts = (products: ItemInterface[], filterType: string, filterValue: string) => {
-  if (!filterValue) return products;
+export const filterItems = (items: ItemInterface[], filterType: string, filterValue: string) => {
+  if (!filterValue) return items;
 
-  return products.filter((product) => {
+  return items.filter((item) => {
     if (filterType === 'Descrição') {
-      return product.descricao.toLowerCase().includes(filterValue.toLowerCase());
+      return item.descricao.toLowerCase().includes(filterValue.toLowerCase());
     } else if (filterType === 'Código') {
-      return product.item.toString() === filterValue;
+      return item.item.toString() === filterValue;
     }
     return true;
   });

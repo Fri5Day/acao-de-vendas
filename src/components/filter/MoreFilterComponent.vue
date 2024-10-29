@@ -17,8 +17,8 @@
       </v-card-text>
 
       <v-card-actions>
+        <v-btn color="error" @click="closeDialog">Fechar</v-btn>
         <v-btn color="primary" @click="applyFilters">Aplicar</v-btn>
-        <v-btn @click="closeDialog">Fechar</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { fetchProducts } from '@/services/productService'
+import { fetchItems } from '@/services/getApiService'
 
 // Recebe a prop `dialog` que controla a abertura do modal
 const props = defineProps<{ dialog: boolean }>()
@@ -47,7 +47,7 @@ const finishes = ref<string[]>([])
 
 // Função para buscar as opções de filtro da API
 const loadFilterOptions = async () => {
-  const { products, error } = await fetchProducts()
+  const { items, error } = await fetchItems()
 
   if (error) {
     console.error('Erro ao carregar filtros:', error)
@@ -55,9 +55,9 @@ const loadFilterOptions = async () => {
   }
 
   // Preenchendo as opções de filtro com base nos dados da API
-  variations.value = [...new Set(products.map((p) => p.desVariacao))]
-  colors.value = [...new Set(products.map((p) => p.desCor))]
-  finishes.value = [...new Set(products.map((p) => p.desAcabamento))]
+  variations.value = [...new Set(items.map((p) => p.desVariacao))]
+  colors.value = [...new Set(items.map((p) => p.desCor))]
+  finishes.value = [...new Set(items.map((p) => p.desAcabamento))]
 }
 
 // Função para aplicar os filtros
@@ -68,11 +68,11 @@ const applyFilters = () => {
     finish: selectedFinish.value || ''
   }
   emit('apply-more-filters', filters)
-  closeDialog() 
+  closeDialog()
 }
 
 const closeDialog = () => {
-  emit('update:dialog', false) 
+  emit('update:dialog', false)
 }
 
 // Observe a prop `dialog` para atualizar o estado local

@@ -12,10 +12,10 @@
         </v-row>
 
         <template v-else>
-          <v-chip variant="outlined"> Total itens filtrados: {{ filteredProducts.length }} </v-chip>
+          <v-chip variant="outlined"> Total itens filtrados: {{ filteredItems.length }} </v-chip>
           <v-row>
             <v-col
-              v-for="(product, index) in paginatedProducts"
+              v-for="(item, index) in paginatedItems"
               :key="index"
               cols="12"
               sm="6"
@@ -23,22 +23,22 @@
               class="mb-4 mt-10"
             >
               <v-card>
-                <v-card-title>{{ product.descricao }}</v-card-title>
-                <v-card-subtitle class="pt-4">Código do Item: {{ product.item }}</v-card-subtitle>
+                <v-card-title>{{ item.descricao }}</v-card-title>
+                <v-card-subtitle class="pt-4">Código do Item: {{ item.item }}</v-card-subtitle>
 
                 <v-card-text class="headline">
-                  <div>Variação: {{ product.desVariacao }}</div>
-                  <div>Cor: {{ product.desCor }}</div>
-                  <div>Acabamento: {{ product.desAcabamento }}</div>
+                  <div>Variação: {{ item.desVariacao }}</div>
+                  <div>Cor: {{ item.desCor }}</div>
+                  <div>Acabamento: {{ item.desAcabamento }}</div>
                 </v-card-text>
 
                 <v-card-actions>
-                  <v-btn color="primary" text="Ver Mais" @click="openItemDetails(product)" />
+                  <v-btn color="primary" text="Ver Mais" @click="openItemDetails(item)" />
                 </v-card-actions>
               </v-card>
             </v-col>
           </v-row>
-          <v-row class="mt-10" v-if="filteredProducts.length === 0">
+          <v-row class="mt-10" v-if="filteredItems.length === 0">
             <v-col>
               <v-alert type="info"> Nenhum item encontrado com o filtro aplicado. </v-alert>
             </v-col>
@@ -55,15 +55,15 @@
       />
 
       <Pagination
-        :total-items="filteredProducts.length"
+        :total-items="filteredItems.length"
         :current-page="currentPage"
         @page-changed="changePage"
       />
 
       <SeeMoreComponent
-        v-if="selectedProduct"
+        v-if="selectedItem"
         :isActive="showSeeMoreDialog"
-        :product="selectedProduct"
+        :item="selectedItem"
         @update:isActive="showSeeMoreDialog = $event"
       />
     </main>
@@ -74,8 +74,8 @@
 import { ref, computed, onMounted } from 'vue'
 
 // Serviços
-import { fetchProducts } from '@/services/productService'
-import { filterProducts } from '@/utils/filter/filterService'
+import { fetchItems } from '@/services/getApiService'
+import { filterItems } from '@/utils/filter/filterService'
 import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
 import { getPaginatedItems } from '@/utils/pagination'
 
@@ -92,9 +92,9 @@ import type ItemInterface from '@/interface/item'
 import type AdditionalFilters from '@/interface/moreFilter'
 
 // Estado dos itens
-const products = ref<ItemInterface[]>([])
-const filteredProducts = ref<ItemInterface[]>([])
-const selectedProduct = ref<ItemInterface | null>(null)
+const items = ref<ItemInterface[]>([])
+const filteredItems = ref<ItemInterface[]>([])
+const selectedItem = ref<ItemInterface | null>(null)
 
 // Variáveis de estado
 const isLoading = ref<boolean>(true)
@@ -110,14 +110,14 @@ const itemsPerPage = 12
 onMounted(async () => {
   try {
     isLoading.value = true
-    const { products: fetchedProducts, error } = await fetchProducts()
+    const { items: fetchedItems, error } = await fetchItems()
 
     if (error) {
       errorMessage.value = error
       showErrorDialog.value = true
     } else {
-      products.value = fetchedProducts
-      filteredProducts.value = fetchedProducts
+      items.value = fetchedItems
+      filteredItems.value = fetchedItems
     }
   } catch (err) {
     errorMessage.value = 'Ocorreu um erro inesperado.'
@@ -128,36 +128,33 @@ onMounted(async () => {
 })
 
 function openItemDetails(item: ItemInterface) {
-  selectedProduct.value = item
+  selectedItem.value = item
   showSeeMoreDialog.value = true
 }
 
 // Computed property para calcular os produtos paginados
-const paginatedProducts = computed(() =>
-  getPaginatedItems(filteredProducts.value, currentPage.value, itemsPerPage)
+const paginatedItems = computed(() =>
+  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage)
 )
 
-// Função para aplicar filtro
 const applyFilter = (filter: FilterPayload) => {
   const { type, value } = filter
-
+  
   if (value) {
-    const filtered = filterProducts(products.value, type, value)
-    filteredProducts.value = filtered
+    const filtered = filterItems(items.value, type, value)
+    filteredItems.value = filtered
   } else {
-    filteredProducts.value = [...products.value]
+    filteredItems.value = [...items.value]
   }
   currentPage.value = 1
 }
 
-// Função para aplicar filtros adicionais
 const applyMoreFilters = (filters: AdditionalFilters) => {
-  const filtered = applyAdditionalFilters(products.value, filters)
-  filteredProducts.value = filtered
+  const filtered = applyAdditionalFilters(items.value, filters)
+  filteredItems.value = filtered
   currentPage.value = 1
 }
 
-// Função para alterar a página
 const changePage = (page: number) => {
   currentPage.value = page
 }
