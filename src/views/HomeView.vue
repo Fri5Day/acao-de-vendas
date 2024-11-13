@@ -106,7 +106,11 @@ const showSeeMoreDialog = ref(false)
 const currentPage = ref(1)
 const itemsPerPage = 12
 
-// Função para buscar os itens
+const activeFilters = ref({
+  primary: { type: '', value: '' },
+  additional: {} as AdditionalFilters
+});
+
 onMounted(async () => {
   try {
     isLoading.value = true
@@ -132,30 +136,36 @@ function openItemDetails(item: ItemInterface) {
   showSeeMoreDialog.value = true
 }
 
-// Computed property para calcular os produtos paginados
 const paginatedItems = computed(() =>
   getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage)
 )
 
 const applyFilter = (filter: FilterPayload) => {
-  const { type, value } = filter
-  
-  if (value) {
-    const filtered = filterItems(items.value, type, value)
-    filteredItems.value = filtered
-  } else {
-    filteredItems.value = [...items.value]
-  }
-  currentPage.value = 1
+  activeFilters.value.primary = filter;
+  applyAllFilters();
 }
 
 const applyMoreFilters = (filters: AdditionalFilters) => {
-  const filtered = applyAdditionalFilters(items.value, filters)
-  filteredItems.value = filtered
-  currentPage.value = 1
+  activeFilters.value.additional = filters;
+  applyAllFilters();
+}
+
+const applyAllFilters = () => {
+  let filtered = [...items.value];
+
+  if (activeFilters.value.primary.value) {
+    filtered = filterItems(filtered, activeFilters.value.primary.type, activeFilters.value.primary.value);
+  }
+
+  if (Object.keys(activeFilters.value.additional).length > 0) {
+    filtered = applyAdditionalFilters(filtered, activeFilters.value.additional);
+  }
+
+  filteredItems.value = filtered;
+  currentPage.value = 1;
 }
 
 const changePage = (page: number) => {
-  currentPage.value = page
+  currentPage.value = page;
 }
 </script>

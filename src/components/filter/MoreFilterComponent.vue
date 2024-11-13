@@ -1,19 +1,58 @@
 <template>
-  <v-dialog v-model="localDialog" max-width="500">
+  <v-dialog v-model="localDialog" max-width="500" @click:outside="closeDialog">
     <v-card>
       <v-card-title>
         <span class="text-h5">Filtros adicionais</span>
       </v-card-title>
 
       <v-card-text>
-        <v-select
-          v-model="selectedVariation"
-          :items="variations"
-          label="Variação"
-          outlined
-        ></v-select>
-        <v-select v-model="selectedColor" :items="colors" label="Cor" outlined></v-select>
-        <v-select v-model="selectedFinish" :items="finishes" label="Acabamento" outlined></v-select>
+        <v-row align="center">
+          <v-col cols="10">
+            <v-select
+              v-model="selectedVariation"
+              :items="variations"
+              label="Variação"
+              outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="2" class="d-flex align-center justify-center">
+            <v-btn icon variant="plain" @click="clearFilter('variation')">
+              <v-icon small>mdi-close-circle</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+
+        <v-row align="center">
+          <v-col cols="10">
+            <v-select
+              v-model="selectedColor"
+              :items="colors"
+              label="Cor"
+              outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="2" class="d-flex align-center justify-center">
+            <v-btn icon variant="plain" @click="clearFilter('color')">
+              <v-icon small>mdi-close-circle</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+
+        <v-row align="center">
+          <v-col cols="10">
+            <v-select
+              v-model="selectedFinish"
+              :items="finishes"
+              label="Acabamento"
+              outlined
+            ></v-select>
+          </v-col>
+          <v-col cols="2" class="d-flex align-center justify-center">
+            <v-btn icon variant="plain" @click="clearFilter('finish')">
+              <v-icon small>mdi-close-circle</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
       </v-card-text>
 
       <v-card-actions>
@@ -28,7 +67,6 @@
 import { ref, onMounted, watch } from 'vue'
 import { fetchItems } from '@/services/getApiService'
 
-// Recebe a prop `dialog` que controla a abertura do modal
 const props = defineProps<{ dialog: boolean }>()
 const emit = defineEmits(['apply-more-filters', 'update:dialog'])
 
@@ -38,14 +76,13 @@ const selectedColor = ref<string | null>(null)
 const selectedFinish = ref<string | null>(null)
 
 // Estado local para controlar o diálogo
-const localDialog = ref(props.dialog)
+const localDialog = ref(false)
 
 // Arrays para armazenar os valores recebidos da API
 const variations = ref<string[]>([])
 const colors = ref<string[]>([])
 const finishes = ref<string[]>([])
 
-// Função para buscar as opções de filtro da API
 const loadFilterOptions = async () => {
   const { items, error } = await fetchItems()
 
@@ -54,13 +91,11 @@ const loadFilterOptions = async () => {
     return
   }
 
-  // Preenchendo as opções de filtro com base nos dados da API
   variations.value = [...new Set(items.map((p) => p.desVariacao))]
   colors.value = [...new Set(items.map((p) => p.desCor))]
   finishes.value = [...new Set(items.map((p) => p.desAcabamento))]
 }
 
-// Função para aplicar os filtros
 const applyFilters = () => {
   const filters = {
     variation: selectedVariation.value || '',
@@ -72,17 +107,26 @@ const applyFilters = () => {
 }
 
 const closeDialog = () => {
+  localDialog.value = false
   emit('update:dialog', false)
 }
 
-// Observe a prop `dialog` para atualizar o estado local
+const clearFilter = (filterType: 'variation' | 'color' | 'finish') => {
+  if (filterType === 'variation') {
+    selectedVariation.value = null
+  } else if (filterType === 'color') {
+    selectedColor.value = null
+  } else if (filterType === 'finish') {
+    selectedFinish.value = null
+  }
+}
+
 watch(
   () => props.dialog,
   (newVal) => {
-    localDialog.value = newVal // Atualiza o estado local quando a prop mudar
+    localDialog.value = newVal
   }
 )
 
-// Carregar as opções de filtro quando o componente for montado
 onMounted(loadFilterOptions)
 </script>
