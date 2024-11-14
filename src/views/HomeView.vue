@@ -27,9 +27,9 @@
                 <v-card-subtitle class="pt-4">Código do Item: {{ item.item }}</v-card-subtitle>
 
                 <v-card-text class="headline">
-                  <div>Variação: {{ item.desVariacao }}</div>
-                  <div>Cor: {{ item.desCor }}</div>
-                  <div>Acabamento: {{ item.desAcabamento }}</div>
+                  <div class="truncate">Variação: {{ item.desVariacao }}</div>
+                  <div class="truncate">Cor: {{ item.desCor }}</div>
+                  <div class="truncate">Acabamento: {{ item.desAcabamento }}</div>
                 </v-card-text>
 
                 <v-card-actions>
@@ -169,3 +169,12 @@ const changePage = (page: number) => {
   currentPage.value = page;
 }
 </script>
+
+<style scoped>
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%; 
+}
+</style>
