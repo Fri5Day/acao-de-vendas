@@ -20,7 +20,7 @@ export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: st
     return { items: response.data };
   } catch (error: any) {
     console.error('Erro ao buscar os dados da API:', error);
-    const errorMessage = error.response?.data || 'Falha na comunicação com a API, verifique sua conexão com a rede.';
+    const errorMessage = error.response?.data || 'Falha na comunicação com a API';
     return { items: [], error: errorMessage }; 
   }
 };

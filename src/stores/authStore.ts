@@ -3,7 +3,7 @@ import { api } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    jwtToken: localStorage.getItem('jwtToken') as string | null
+    jwtToken: sessionStorage.getItem('jwtToken') as string | null
   }),
 
   actions: {
@@ -24,18 +24,17 @@ export const useAuthStore = defineStore('auth', {
         const tokenAcesso = response.data.token_Acesso
         if (tokenAcesso) {
           this.jwtToken = tokenAcesso
-          localStorage.setItem('jwtToken', tokenAcesso)
+          sessionStorage.setItem('jwtToken', tokenAcesso)
         }
         return tokenAcesso
       } catch (error) {
         console.error('Falha no login:', error)
-        throw new Error('Falha durante o login')
       }
     },
 
     clearJwtToken() {
       this.jwtToken = null
-      localStorage.removeItem('jwtToken')
+      sessionStorage.removeItem('jwtToken')
     }
   }
 })
