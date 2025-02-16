@@ -13,9 +13,9 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-        const _token = import.meta.env.VITE_API_TOKEN
+        //  const _token = import.meta.env.VITE_API_TOKEN
         const response = await api.post('/auth', {
-          _token,
+        //  _token,
           username: import.meta.env.VITE_API_USERNAME,
           password: import.meta.env.VITE_API_PASSWORD,
           sistema: import.meta.env.VITE_API_SISTEMA
@@ -29,12 +29,8 @@ export const useAuthStore = defineStore('auth', {
         return tokenAcesso
       } catch (error) {
         console.error('Falha no login:', error)
+        throw error
       }
-    },
-
-    clearJwtToken() {
-      this.jwtToken = null
-      sessionStorage.removeItem('jwtToken')
     }
   }
 })

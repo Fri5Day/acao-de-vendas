@@ -1,5 +1,5 @@
 export default interface AdditionalFilters {
-  variation: string | null
-  color: string | null
-  finish: string | null
+  variations?: string[];
+  colors?: string[];
+  finishes?: string[];
 }

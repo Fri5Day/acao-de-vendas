@@ -1,132 +1,119 @@
 <template>
-  <v-dialog v-model="localDialog" max-width="500" @click:outside="closeDialog">
+  <v-dialog v-model="dialogModel" max-width="500" @click:outside="closeDialog">
     <v-card>
-      <v-card-title>
-        <span class="text-h5">Filtros adicionais</span>
-      </v-card-title>
-
+      <v-card-title>Filtros Adicionais</v-card-title>
       <v-card-text>
-        <v-row align="center">
-          <v-col cols="10">
-            <v-select
-              v-model="selectedVariation"
-              :items="variations"
-              label="Variação"
-              outlined
-            ></v-select>
+        <v-row no-gutters>
+          <v-col cols="12">
+            <FilterSelect v-model="selectedVariations" label="Variação" :items="variations" />
           </v-col>
-          <v-col cols="2" class="d-flex align-center justify-center">
-            <v-btn icon variant="plain" @click="clearFilter('variation')">
-              <v-icon small>mdi-close-circle</v-icon>
-            </v-btn>
+          <v-col cols="12">
+            <FilterSelect v-model="selectedColors" label="Cor" :items="colors" />
           </v-col>
-        </v-row>
-
-        <v-row align="center">
-          <v-col cols="10">
-            <v-select
-              v-model="selectedColor"
-              :items="colors"
-              label="Cor"
-              outlined
-            ></v-select>
-          </v-col>
-          <v-col cols="2" class="d-flex align-center justify-center">
-            <v-btn icon variant="plain" @click="clearFilter('color')">
-              <v-icon small>mdi-close-circle</v-icon>
-            </v-btn>
-          </v-col>
-        </v-row>
-
-        <v-row align="center">
-          <v-col cols="10">
-            <v-select
-              v-model="selectedFinish"
-              :items="finishes"
-              label="Acabamento"
-              outlined
-            ></v-select>
-          </v-col>
-          <v-col cols="2" class="d-flex align-center justify-center">
-            <v-btn icon variant="plain" @click="clearFilter('finish')">
-              <v-icon small>mdi-close-circle</v-icon>
-            </v-btn>
+          <v-col cols="12">
+            <FilterSelect v-model="selectedFinishes" label="Acabamento" :items="finishes" />
           </v-col>
         </v-row>
       </v-card-text>
-
       <v-card-actions>
-        <v-btn color="error" @click="closeDialog">Fechar</v-btn>
-        <v-btn color="primary" @click="applyFilters">Aplicar</v-btn>
+        <v-spacer />
+        <v-btn @click="closeDialog">Cancelar</v-btn>
+        <v-btn variant="outlined" color="primary" :loading="isApplying" @click="applyFilters"
+          >Aplicar</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import FilterSelect from '@/components/filter/FilterSelect.vue'
 import { fetchItems } from '@/services/getApiService'
 
 const props = defineProps<{ dialog: boolean }>()
-const emit = defineEmits(['apply-more-filters', 'update:dialog'])
+const emit = defineEmits(['update:dialog', 'apply-more-filters'])
 
-// Estado dos filtros
-const selectedVariation = ref<string | null>(null)
-const selectedColor = ref<string | null>(null)
-const selectedFinish = ref<string | null>(null)
+const dialogModel = computed({
+  get: () => props.dialog,
+  set: (value) => emit('update:dialog', value)
+})
 
-// Estado local para controlar o diálogo
-const localDialog = ref(false)
-
-// Arrays para armazenar os valores recebidos da API
 const variations = ref<string[]>([])
 const colors = ref<string[]>([])
 const finishes = ref<string[]>([])
 
+const selectedVariations = ref<string[]>([])
+const selectedColors = ref<string[]>([])
+const selectedFinishes = ref<string[]>([])
+const isApplying = ref(false)
+
 const loadFilterOptions = async () => {
-  const { items, error } = await fetchItems()
+  try {
+    const { items, error } = await fetchItems()
+    if (error) {
+      console.error('Erro ao carregar filtros:', error)
+      return
+    }
 
-  if (error) {
-    console.error('Erro ao carregar filtros:', error)
-    return
-  }
+    const uniqueValues = {
+      variations: new Set<string>(),
+      colors: new Set<string>(),
+      finishes: new Set<string>()
+    }
 
-  variations.value = [...new Set(items.map((p) => p.desVariacao))]
-  colors.value = [...new Set(items.map((p) => p.desCor))]
-  finishes.value = [...new Set(items.map((p) => p.desAcabamento))]
-}
+    items.forEach((p) => {
+      uniqueValues.variations.add(p.desVariacao)
+      uniqueValues.colors.add(p.desCor)
+      uniqueValues.finishes.add(p.desAcabamento)
+    })
 
-const applyFilters = () => {
-  const filters = {
-    variation: selectedVariation.value || '',
-    color: selectedColor.value || '',
-    finish: selectedFinish.value || ''
-  }
-  emit('apply-more-filters', filters)
-  closeDialog()
-}
-
-const closeDialog = () => {
-  localDialog.value = false
-  emit('update:dialog', false)
-}
-
-const clearFilter = (filterType: 'variation' | 'color' | 'finish') => {
-  if (filterType === 'variation') {
-    selectedVariation.value = null
-  } else if (filterType === 'color') {
-    selectedColor.value = null
-  } else if (filterType === 'finish') {
-    selectedFinish.value = null
+    variations.value = [...uniqueValues.variations]
+    colors.value = [...uniqueValues.colors]
+    finishes.value = [...uniqueValues.finishes]
+  } catch (err) {
+    console.error('Erro inesperado ao carregar filtros:', err)
   }
 }
 
 watch(
   () => props.dialog,
   (newVal) => {
-    localDialog.value = newVal
+    if (!newVal) {
+      selectedVariations.value = []
+      selectedColors.value = []
+      selectedFinishes.value = []
+    }
   }
 )
+
+const applyFilters = () => {
+  try {
+    isApplying.value = true
+
+    const filters = {
+      variations: selectedVariations.value,
+      colors: selectedColors.value,
+      finishes: selectedFinishes.value
+    }
+
+    // if (Object.values(filters).flat().length === 0) {
+    //   alert('Selecione pelo menos um filtro para aplicar.')
+    //   isApplying.value = false
+    //   return
+    // }
+
+    emit('apply-more-filters', filters)
+    closeDialog()
+  } catch (error) {
+    console.error(error)
+  } finally {
+    isApplying.value = false
+  }
+}
+const closeDialog = () => {
+  emit('update:dialog', false)
+}
 
 onMounted(loadFilterOptions)
 </script>

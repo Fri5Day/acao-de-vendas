@@ -1,48 +1,45 @@
 <template>
   <v-container class="d-flex justify-center align-center mt-15" fluid>
-    <v-card class="pa-4 filter-card">
-      <v-row class="align-center justify-center">
-        <v-col cols="6">
-          <v-select
-            v-model="filterType"
-            :items="filterOptions"
-            label="Filtrar por"
-            outlined
-            dense
-            hide-details
-          ></v-select>
-        </v-col>
+    <v-row class="align-center justify-center">
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-select
+          v-model="filterType"
+          :items="filterOptions"
+          label="Filtrar por"
+          density="compact"
+          variant="outlined"
+        />
+      </v-col>
 
-        <v-col cols="6">
-          <v-text-field
-            v-if="filterType === 'Descrição'"
-            v-model="filterValue"
-            label="Digite a descrição"
-            outlined
-            dense
-            hide-details
-          ></v-text-field>
+      <v-col cols="12" sm="6" md="4" lg="4">
+        <v-text-field
+          v-if="filterType === 'Descrição'"
+          v-model="filterValue"
+          label="Digite a descrição"
+          density="compact"
+          variant="outlined"
+        />
 
-          <v-text-field
-            v-if="filterType === 'Código'"
-            v-model="filterValue"
-            label="Digite o código"
-            type="number"
-            outlined
-            dense
-            hide-details
-          ></v-text-field>
-        </v-col>
+        <v-text-field
+          v-if="filterType === 'Código'"
+          v-model="filterValue"
+          label="Digite o código"
+          type="number"
+          density="compact"
+          variant="outlined"
+        />
+      </v-col>
 
-        <v-col cols="5" md="3">
-          <v-btn color="primary" @click="emitFilter" elevation="2" class="full-width">Buscar</v-btn>
-        </v-col>
+      <v-col cols="12" sm="12" md="4" lg="2" class="teste d-flex align-center justify-end gap-2">
+        <v-btn color="success" elevation="2" @click="emitFilter">Buscar</v-btn>
 
-        <v-col cols="5" md="3">
-          <v-btn color="secondary" @click="openMoreFiltersDialog" elevation="2" class="full-width">+Filtros</v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
+        <v-btn color="success" elevation="2" variant="outlined" @click="openMoreFiltersDialog">
+          +Filtros
+        </v-btn>
+
+        <v-btn icon="mdi-filter-remove" color="error" variant="text" @click="emptyFilter" />
+      </v-col>
+    </v-row>
 
     <MoreFilterComponent
       :dialog="showMoreFiltersDialog"
@@ -56,58 +53,65 @@
 import { ref, defineEmits } from 'vue'
 import MoreFilterComponent from '@/components/filter/MoreFilterComponent.vue'
 
-// Define os eventos que este componente emitirá
 const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
-  (e: 'apply-more-filters', filters: { variation: string; color: string; finish: string }): void
+  (
+    e: 'apply-more-filters',
+    filters: { variation: string[]; color: string[]; finish: string[] }
+  ): void
+  (e: 'clear-filters'): void
 }>()
 
-// Estado do filtro
 const filterType = ref('Descrição')
 const filterValue = ref('')
-
 const filterOptions = ['Descrição', 'Código']
-
-// Controle do diálogo de filtros adicionais
 const showMoreFiltersDialog = ref(false)
 
-// Emite o evento de filtro para o componente pai
+const selectedFilters = ref<{ variations: string[]; colors: string[]; finishes: string[] }>({
+  variations: [],
+  colors: [],
+  finishes: []
+})
+
 const emitFilter = () => {
-  if (filterValue.value.trim()) {
-    emit('filter', {
-      type: filterType.value,
-      value: filterValue.value.trim()
-    })
-  } else {
-    emit('filter', {
-      type: filterType.value,
-      value: ''
-    })
-  }
+  emit('filter', {
+    type: filterType.value,
+    value: filterValue.value.trim()
+  })
 }
 
-// Abre o diálogo de filtros adicionais
 const openMoreFiltersDialog = () => {
   showMoreFiltersDialog.value = true
 }
 
-// Lida com a aplicação de mais filtros
-const onApplyMoreFilters = (filters: { variation: string; color: string; finish: string }) => {
-  emit('apply-more-filters', filters) 
+const emptyFilter = () => {
+  filterValue.value = ''
+  selectedFilters.value = { variations: [], colors: [], finishes: [] }
+  emitFilter()
+  emit('apply-more-filters', selectedFilters.value)
+}
+
+const onApplyMoreFilters = (filters: {
+  variations: string[]
+  colors: string[]
+  finishes: string[]
+}) => {
+  selectedFilters.value = filters
+  emit('apply-more-filters', filters)
   showMoreFiltersDialog.value = false
 }
 
-
-// Fecha o diálogo de filtros adicionais
 const onClose = () => {
   showMoreFiltersDialog.value = false
 }
 </script>
 
 <style scoped>
-.filter-card {
-  background-color: #f5f5f5;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.gap-2 {
+  gap: 8px;
+}
+
+.teste {
+  margin-top: -20px;
 }
 </style>
