@@ -25,7 +25,17 @@
             class="truncate"
           >
             <template v-slot:item.actions="{ item }">
-              <v-btn variant="text" color="primary" icon="$info" @click="openItemDetails(item)" />
+              <v-tooltip text="Ver detalhes">
+                <template v-slot:activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    variant="text"
+                    color="primary"
+                    icon="$info"
+                    @click="openItemDetails(item)"
+                  />
+                </template>
+              </v-tooltip>
             </template>
           </v-data-table>
         </div>

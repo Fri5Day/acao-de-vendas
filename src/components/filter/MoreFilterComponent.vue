@@ -24,7 +24,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  
+
   <transition name="slide-alert">
     <v-alert
       v-if="alertFilter"
@@ -73,9 +73,11 @@ const loadFilterOptions = async () => {
     }
 
     items.forEach((p) => {
-      uniqueValues.variations.add(p.detalhamento[0].desVariacao)
-      uniqueValues.colors.add(p.detalhamento[0].desCor)
-      uniqueValues.finishes.add(p.detalhamento[0].desAcabamento)
+      p.detalhamento.forEach((detalhe) => {
+        uniqueValues.variations.add(detalhe.desVariacao)
+        uniqueValues.colors.add(detalhe.desCor)
+        uniqueValues.finishes.add(detalhe.desAcabamento)
+      })
     })
 
     variations.value = [...uniqueValues.variations]

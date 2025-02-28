@@ -37,14 +37,24 @@
           +Filtros
         </v-btn>
 
-        <v-btn icon="mdi-filter-remove" color="error" variant="text" @click="emptyFilter" />
+        <v-tooltip text="Limpar filtros">
+          <template v-slot:activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon="mdi-filter-remove"
+              color="error"
+              variant="text"
+              @click="emptyFilter"
+            />
+          </template>
+        </v-tooltip>
       </v-col>
     </v-row>
 
     <MoreFilterComponent
-      :dialog="showMoreFiltersDialog"
+      v-model:dialog="showMoreFiltersDialog"
+      :selectedFilters="selectedFilters"
       @apply-more-filters="onApplyMoreFilters"
-      @update:dialog="onClose"
     />
   </v-container>
 </template>
@@ -57,7 +67,7 @@ const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
   (
     e: 'apply-more-filters',
-    filters: { variation: string[]; color: string[]; finish: string[] }
+    filters: { variations: string[]; colors: string[]; finishes: string[] }
   ): void
   (e: 'clear-filters'): void
 }>()
@@ -98,10 +108,6 @@ const onApplyMoreFilters = (filters: {
 }) => {
   selectedFilters.value = filters
   emit('apply-more-filters', filters)
-  showMoreFiltersDialog.value = false
-}
-
-const onClose = () => {
   showMoreFiltersDialog.value = false
 }
 </script>
