@@ -76,19 +76,26 @@ import ErrorComponent from '@/components/ErrorComponent.vue'
 import Pagination from '@/components/PaginationComponent.vue'
 import SeeMoreComponent from '@/components/SeeMoreComponent.vue'
 import type FilterPayload from '@/interface/filter'
-import type ItemInterface from '@/interface/item'
+import type ItemInterface from '@/interface/item/itemInterface'
+import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
 import type AdditionalFilters from '@/interface/moreFilter'
 
 const items = ref<ItemInterface[]>([])
-const filteredItems = ref<ItemInterface[]>([])
-const selectedItem = ref<ItemInterface | null>(null)
+const filteredItems = ref<ItemDetalhado[]>([])
+const selectedItem = ref<ItemDetalhado | null>(null)
+
 const isLoading = ref<boolean>(true)
 const errorMessage = ref('')
 const showErrorDialog = ref(false)
 const showSeeMoreDialog = ref(false)
+
 const currentPage = ref(1)
 const itemsPerPage = 10
-const activeFilters = ref({ primary: { type: '', value: '' }, additional: {} as AdditionalFilters })
+
+const activeFilters = ref({
+  primary: { type: '', value: '' },
+  additional: {} as AdditionalFilters
+})
 
 const headers = ref([
   { title: 'Código', key: 'item', align: 'start' },
@@ -99,16 +106,26 @@ const headers = ref([
   { title: 'Ações', key: 'actions', align: 'center', sortable: false }
 ])
 
+const transformItems = (items: ItemInterface[]): ItemDetalhado[] => {
+  return items.flatMap((item) =>
+    item.detalhamento.map((detalhe) => ({
+      ...item,
+      ...detalhe
+    }))
+  )
+}
+
 onMounted(async () => {
   try {
     isLoading.value = true
     const { items: fetchedItems, error } = await fetchItems()
+
     if (error) {
       errorMessage.value = error
       showErrorDialog.value = true
     } else {
       items.value = fetchedItems
-      filteredItems.value = fetchedItems
+      filteredItems.value = transformItems(fetchedItems)
     }
   } catch (err) {
     errorMessage.value = 'Ocorreu um erro inesperado.'
@@ -118,7 +135,7 @@ onMounted(async () => {
   }
 })
 
-function openItemDetails(item: ItemInterface) {
+function openItemDetails(item: ItemDetalhado) {
   selectedItem.value = item
   showSeeMoreDialog.value = true
 }
@@ -138,7 +155,8 @@ const applyMoreFilters = (filters: AdditionalFilters) => {
 }
 
 const applyAllFilters = () => {
-  let filtered = [...items.value]
+  let filtered = transformItems(items.value)
+
   if (activeFilters.value.primary.value) {
     filtered = filterItems(
       filtered,
@@ -146,9 +164,11 @@ const applyAllFilters = () => {
       activeFilters.value.primary.value
     )
   }
+
   if (Object.keys(activeFilters.value.additional).length > 0) {
     filtered = applyAdditionalFilters(filtered, activeFilters.value.additional)
   }
+
   filteredItems.value = filtered
   currentPage.value = 1
 }

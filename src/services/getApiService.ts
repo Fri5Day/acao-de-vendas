@@ -1,6 +1,6 @@
 import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/authStore'
-import type ItemInterface from '@/interface/item'
+import type ItemInterface from '@/interface/item/itemInterface'
 
 export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: string }> => {
   const authStore = useAuthStore()

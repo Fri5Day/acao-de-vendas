@@ -1,7 +1,14 @@
 <template>
   <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="450">
-    <v-card v-if="item" max-width="500px">
-      <v-img height="200px" src="https://cdn.vuetifyjs.com/images/cards/sunshine.jpg" cover></v-img>
+    <v-card v-if="item" max-width="500px" max-height="600px">
+      <v-carousel v-if="item?.imagens[0]?.url != null" hide-delimiters show-arrows="hover">
+        <v-carousel-item
+          v-for="(imagem, index) in item.imagens"
+          :key="index"
+          :src="imagem.url"
+          cover
+        />
+      </v-carousel>
       <h3 class="text-h5 ml-5 mt-2">{{ item.descricao }}</h3>
       <v-card-text>
         <div>Código: {{ fullCodeItem }}</div>
@@ -9,6 +16,7 @@
         <div>Cor: {{ item.desCor }}</div>
         <div>Acabamento: {{ item.desAcabamento }}</div>
       </v-card-text>
+
       <v-card-actions>
         <v-btn variant="outlined" color="error" @click="closeDialog">Fechar</v-btn>
       </v-card-actions>
@@ -18,7 +26,7 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed } from 'vue'
-import type ItemInterface from '@/interface/item'
+import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
 
 const props = defineProps({
   isActive: {
@@ -26,7 +34,7 @@ const props = defineProps({
     required: true
   },
   item: {
-    type: Object as () => ItemInterface | null,
+    type: Object as () => ItemDetalhado | null,
     required: true
   }
 })
@@ -42,4 +50,5 @@ const emit = defineEmits(['update:isActive'])
 const closeDialog = () => {
   emit('update:isActive', false)
 }
+
 </script>

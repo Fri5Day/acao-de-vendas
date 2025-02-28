@@ -1,4 +1,4 @@
-import type ItemInterface from "@/interface/item";
+import type ItemInterface from "@/interface/item/itemInterface";
 import type AdditionalFilters from "@/interface/moreFilter";
 
 export const applyAdditionalFilters = (items: ItemInterface[], filters: AdditionalFilters): ItemInterface[] => {

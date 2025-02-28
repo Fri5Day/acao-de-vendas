@@ -24,6 +24,15 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  
+  <transition name="slide-alert">
+    <v-alert
+      v-if="alertFilter"
+      class="alert-top-right"
+      text="Selecione ao menos um filtro para aplicar!"
+      type="warning"
+    ></v-alert>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -47,6 +56,7 @@ const selectedVariations = ref<string[]>([])
 const selectedColors = ref<string[]>([])
 const selectedFinishes = ref<string[]>([])
 const isApplying = ref(false)
+const alertFilter = ref(false)
 
 const loadFilterOptions = async () => {
   try {
@@ -63,9 +73,9 @@ const loadFilterOptions = async () => {
     }
 
     items.forEach((p) => {
-      uniqueValues.variations.add(p.desVariacao)
-      uniqueValues.colors.add(p.desCor)
-      uniqueValues.finishes.add(p.desAcabamento)
+      uniqueValues.variations.add(p.detalhamento[0].desVariacao)
+      uniqueValues.colors.add(p.detalhamento[0].desCor)
+      uniqueValues.finishes.add(p.detalhamento[0].desAcabamento)
     })
 
     variations.value = [...uniqueValues.variations]
@@ -97,11 +107,12 @@ const applyFilters = () => {
       finishes: selectedFinishes.value
     }
 
-    // if (Object.values(filters).flat().length === 0) {
-    //   alert('Selecione pelo menos um filtro para aplicar.')
-    //   isApplying.value = false
-    //   return
-    // }
+    if (Object.values(filters).flat().length === 0) {
+      alertFilter.value = true
+      setTimeout(() => (alertFilter.value = false), 4000)
+      isApplying.value = false
+      return
+    }
 
     emit('apply-more-filters', filters)
     closeDialog()
@@ -117,3 +128,40 @@ const closeDialog = () => {
 
 onMounted(loadFilterOptions)
 </script>
+
+<style scoped>
+.alert-top-right {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 1000;
+  width: 300px;
+}
+
+.slide-alert-enter-active,
+.slide-alert-leave-active {
+  transition:
+    transform 0.5s ease,
+    opacity 0.5s ease;
+}
+
+.slide-alert-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.slide-alert-enter-to {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-alert-leave-from {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.slide-alert-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+</style>
