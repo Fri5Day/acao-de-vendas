@@ -113,6 +113,7 @@ const headers = ref([
   { title: 'Variação', key: 'desVariacao', align: 'start' },
   { title: 'Cor', key: 'desCor', align: 'start' },
   { title: 'Acabamento', key: 'desAcabamento', align: 'start' },
+  { title: 'Saldo', key: 'saldo', align: 'start' },
   { title: 'Ações', key: 'actions', align: 'center', sortable: false }
 ])
 

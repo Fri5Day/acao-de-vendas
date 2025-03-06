@@ -7,5 +7,6 @@ export interface DetalhamentoInterface {
   desCor: string
   acabamento: number
   desAcabamento: string
+  saldo: number
   imagens: Array<ImagemInterface>
 }

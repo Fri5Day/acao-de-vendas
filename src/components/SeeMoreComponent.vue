@@ -1,7 +1,7 @@
 <template>
   <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="450">
     <v-card v-if="item" max-width="500px" max-height="600px">
-      <v-img :max-width="500" :max-height="600" v-if="item?.imagens[0]?.url != null">
+      <v-img :max-width="500" :max-height="400" v-if="item?.imagens[0]?.url != null">
         <v-carousel hide-delimiters show-arrows="hover">
           <v-carousel-item v-for="(imagem, index) in item.imagens" :key="index" :src="imagem.url" />
         </v-carousel>
@@ -12,6 +12,7 @@
         <div>Variação: {{ item.desVariacao }}</div>
         <div>Cor: {{ item.desCor }}</div>
         <div>Acabamento: {{ item.desAcabamento }}</div>
+        <div>Saldo: {{ item.saldo }}</div>
       </v-card-text>
 
       <v-card-actions>
