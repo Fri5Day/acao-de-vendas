@@ -58,6 +58,7 @@ const finishes = ref<string[]>([])
 const selectedVariations = ref<string[]>([])
 const selectedColors = ref<string[]>([])
 const selectedFinishes = ref<string[]>([])
+
 const isApplying = ref(false)
 const alertFilter = ref(false)
 
@@ -66,7 +67,7 @@ const loadFilterOptions = async () => {
     const { items, error } = await fetchItems()
     if (error) {
       console.error('Erro ao carregar filtros:', error)
-      return
+      throw error
     }
 
     const uniqueValues = {
@@ -92,15 +93,18 @@ const loadFilterOptions = async () => {
 }
 
 watch(
-  () => props.dialog,
-  (newVal) => {
-    if (!newVal) {
-      selectedVariations.value = []
-      selectedColors.value = []
-      selectedFinishes.value = []
+  () => props.selectedFilters,
+  (newSelectedFilters) => {
+    if (newSelectedFilters) {
+      selectedVariations.value = newSelectedFilters.variations
+      selectedColors.value = newSelectedFilters.colors
+      selectedFinishes.value = newSelectedFilters.finishes
     }
-  }
+  },
+  { immediate: true } 
 )
+
+
 
 const applyFilters = () => {
   try {
