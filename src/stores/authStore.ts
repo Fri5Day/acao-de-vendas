@@ -3,7 +3,8 @@ import { api } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    jwtToken: sessionStorage.getItem('jwtToken') as string | null
+    jwtToken: sessionStorage.getItem('jwtToken') as string | null,
+    isFetchingToken: false
   }),
 
   actions: {
@@ -12,10 +13,14 @@ export const useAuthStore = defineStore('auth', {
         return this.jwtToken
       }
 
+      if (this.isFetchingToken) {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        return this.fetchJwtToken()
+      }
+
       try {
-        //  const _token = import.meta.env.VITE_API_TOKEN
+        this.isFetchingToken = true
         const response = await api.post('/auth', {
-        //  _token,
           username: import.meta.env.VITE_API_USERNAME,
           password: import.meta.env.VITE_API_PASSWORD,
           sistema: import.meta.env.VITE_API_SISTEMA
@@ -30,6 +35,8 @@ export const useAuthStore = defineStore('auth', {
       } catch (error) {
         console.error('Falha no login:', error)
         throw error
+      } finally {
+        this.isFetchingToken = false
       }
     }
   }

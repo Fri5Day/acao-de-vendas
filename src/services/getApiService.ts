@@ -6,7 +6,7 @@ export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: st
   const authStore = useAuthStore()
 
   try {
-    const token = await authStore.fetchJwtToken()
+    const token = await authStore.fetchJwtToken() 
 
     const response = await api.get('/TSMCadGR_Unidades_Codificacao.ExecutarMetodoInterpretado', {
       params: {
@@ -17,6 +17,7 @@ export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: st
         Authorization: `Bearer ${token}`
       }
     })
+
     return { items: response.data }
   } catch (error: any) {
     console.error('Erro ao buscar os dados da API:', error)
