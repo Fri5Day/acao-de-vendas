@@ -20,7 +20,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 
-// Props recebidas da HomeView
 const props = defineProps<{
   totalItems: number
   currentPage: number
@@ -31,13 +30,10 @@ const emit = defineEmits(['page-changed'])
 const page = ref(props.currentPage)
 const itemsPerPage = 12
 
-
-// Computed para calcular o número total de páginas
 const totalPages = computed(() => {
   return Math.ceil(props.totalItems / itemsPerPage)
 })
 
-// Atualizar a página quando a prop `currentPage` mudar
 watch(
   () => props.currentPage,
   (newPage) => {
@@ -45,7 +41,6 @@ watch(
   }
 )
 
-// Emitir o evento de mudança de página
 const onPageChange = (newPage: number) => {
   page.value = newPage
   emit('page-changed', newPage)

@@ -40,7 +40,10 @@ import { ref, computed, onMounted, watch } from 'vue'
 import FilterSelect from '@/components/filter/FilterSelect.vue'
 import { fetchItems } from '@/services/getApiService'
 
-const props = defineProps<{ dialog: boolean }>()
+const props = defineProps<{
+  dialog: boolean
+  selectedFilters?: { variations: string[]; colors: string[]; finishes: string[] }
+}>()
 const emit = defineEmits(['update:dialog', 'apply-more-filters'])
 
 const dialogModel = computed({
