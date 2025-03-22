@@ -30,24 +30,26 @@
         />
       </v-col>
 
-      <v-col cols="12" sm="12" md="4" lg="2" class="teste d-flex align-center justify-end gap-2">
-        <v-btn color="success" elevation="2" @click="emitFilter">Buscar</v-btn>
+      <v-col cols="12" sm="12" md="4" lg="3" class="margin">
+        <div class="d-flex align-center gap-2">
+          <v-btn color="success" elevation="2" @click="emitFilter">Buscar</v-btn>
 
-        <v-btn color="success" elevation="2" variant="outlined" @click="openMoreFiltersDialog">
-          +Filtros
-        </v-btn>
+          <v-btn color="success" elevation="2" variant="outlined" @click="openMoreFiltersDialog">
+            +Filtros
+          </v-btn>
 
-        <v-tooltip text="Limpar filtros">
-          <template v-slot:activator="{ props }">
-            <v-btn
-              v-bind="props"
-              icon="mdi-filter-remove"
-              color="error"
-              variant="text"
-              @click="emptyFilter"
-            />
-          </template>
-        </v-tooltip>
+          <v-tooltip text="Limpar filtros">
+            <template v-slot:activator="{ props }">
+              <v-btn
+                v-bind="props"
+                icon="mdi-filter-remove"
+                color="error"
+                variant="text"
+                @click="emptyFilter"
+              />
+            </template>
+          </v-tooltip>
+        </div>
       </v-col>
     </v-row>
 
@@ -67,7 +69,9 @@ const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
   (
     e: 'apply-more-filters',
-    filters: { variations: string[]; colors: string[]; finishes: string[] }
+    filters: { variations: { include: string[]; exclude: string[] }
+    colors: { include: string[]; exclude: string[] }
+    finishes: { include: string[]; exclude: string[] } }
   ): void
   (e: 'clear-filters'): void
 }>()
@@ -77,10 +81,14 @@ const filterValue = ref('')
 const filterOptions = ['Descrição', 'Código']
 const showMoreFiltersDialog = ref(false)
 
-const selectedFilters = ref<{ variations: string[]; colors: string[]; finishes: string[] }>({
-  variations: [],
-  colors: [],
-  finishes: []
+const selectedFilters = ref<{
+  variations: { include: string[]; exclude: string[] }
+  colors: { include: string[]; exclude: string[] }
+  finishes: { include: string[]; exclude: string[] }
+}>({
+  variations: { include: [], exclude: [] },
+  colors: { include: [], exclude: [] },
+  finishes: { include: [], exclude: [] }
 })
 
 const emitFilter = () => {
@@ -96,15 +104,19 @@ const openMoreFiltersDialog = () => {
 
 const emptyFilter = () => {
   filterValue.value = ''
-  selectedFilters.value = { variations: [], colors: [], finishes: [] }
+  selectedFilters.value = {
+    variations: { include: [], exclude: [] },
+    colors: { include: [], exclude: [] },
+    finishes: { include: [], exclude: [] }
+  }
   emitFilter()
   emit('apply-more-filters', selectedFilters.value)
 }
 
 const onApplyMoreFilters = (filters: {
-  variations: string[]
-  colors: string[]
-  finishes: string[]
+  variations: { include: string[]; exclude: string[] }
+  colors: { include: string[]; exclude: string[] }
+  finishes: { include: string[]; exclude: string[] }
 }) => {
   selectedFilters.value = filters
   emit('apply-more-filters', filters)
@@ -117,7 +129,7 @@ const onApplyMoreFilters = (filters: {
   gap: 8px;
 }
 
-.teste {
+.margin {
   margin-top: -20px;
 }
 </style>

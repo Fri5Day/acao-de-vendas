@@ -1,6 +1,6 @@
-import type ItemInterface from '@/interface/item/itemInterface';
+import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface';
 
-export const filterItems = (items: ItemInterface[], filterType: string, filterValue: string) => {
+export const filterItems = (items: ItemDetalhado[], filterType: string, filterValue: string) => {
   if (!filterValue) return items;
 
   return items.filter((item) => {

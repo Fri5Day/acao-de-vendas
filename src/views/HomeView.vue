@@ -10,23 +10,34 @@
         </v-col>
       </v-row>
 
-      <template v-else-if="filteredItems.length != 0">
+      <template v-else-if="filteredItems.length === 0">
+        <v-row class="mt-10">
+          <v-col>
+            <v-empty-state
+              icon="mdi-magnify-close"
+              title="Nenhum registro encontrado."
+              text="Não foi possível encontrar nenhum registro para o filtro aplicado."
+            ></v-empty-state>
+          </v-col>
+        </v-row>
+      </template>
+
+      <template v-else>
         <v-chip variant="outlined">
           Total itens filtrados: {{ filteredItems?.length || 0 }}
         </v-chip>
 
         <div class="mt-5">
           <v-data-table
-            :headers="headers"
+            :headers="responsiveHeaders"
             :items="paginatedItems"
             :items-per-page="itemsPerPage"
             :page="currentPage"
             hide-default-footer
-            class="truncate"
           >
-            <template v-slot:item.actions="{ item }">
+            <template #[`item.actions`]="{ item }">
               <v-tooltip text="Ver detalhes">
-                <template v-slot:activator="{ props }">
+                <template #activator="{ props }">
                   <v-btn
                     v-bind="props"
                     variant="text"
@@ -40,23 +51,12 @@
           </v-data-table>
         </div>
       </template>
-
-      <template v-else>
-        <v-row class="mt-10" v-if="filteredItems.length === 0">
-          <v-col>
-            <v-empty-state
-              icon="mdi-magnify-close"
-              title="Nenhum registro encontrado."
-              text="Não foi possível encontrar nenhum registro para o filtro aplicado."
-            ></v-empty-state>
-          </v-col>
-        </v-row>
-      </template>
     </v-container>
 
     <ErrorComponent
       :errorMessage="errorMessage"
       text="Erro na listagem dos itens"
+      :status="itemStore.errorStatus || 500"
       :isActive="showErrorDialog"
       @update:isActive="showErrorDialog = $event"
     />
@@ -75,98 +75,75 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { fetchItems } from '@/services/getApiService'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { filterItems } from '@/utils/filter/filterService'
 import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
 import { getPaginatedItems } from '@/utils/pagination'
+import { useItemStore } from '@/stores/itemStore'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FilterComponent from '@/components/filter/FilterComponent.vue'
 import ErrorComponent from '@/components/ErrorComponent.vue'
 import Pagination from '@/components/PaginationComponent.vue'
 import SeeMoreComponent from '@/components/SeeMoreComponent.vue'
-import type FilterPayload from '@/interface/filter'
+import type FilterPayload from '@/interface/filter/filter'
 import type ItemInterface from '@/interface/item/itemInterface'
 import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
-import type AdditionalFilters from '@/interface/moreFilter'
+import type AdditionalFilters from '@/interface/filter/moreFilter'
+
+const itemStore = useItemStore()
 
 const items = ref<ItemInterface[]>([])
-const filteredItems = ref<ItemDetalhado[]>([])
 const selectedItem = ref<ItemDetalhado | null>(null)
-
 const isLoading = ref<boolean>(true)
 const errorMessage = ref('')
 const showErrorDialog = ref(false)
 const showSeeMoreDialog = ref(false)
-
+const isMobile = ref(window.innerWidth <= 600)
 const currentPage = ref(1)
 const itemsPerPage = 10
 
 const activeFilters = ref({
   primary: { type: '', value: '' },
-  additional: {} as AdditionalFilters
+  additional: {
+    variations: { include: [], exclude: [] },
+    colors: { include: [], exclude: [] },
+    finishes: { include: [], exclude: [] }
+  } as AdditionalFilters
 })
 
 const headers = ref([
-  { title: 'Código', key: 'item', align: 'start' },
-  { title: 'Descrição', key: 'descricao', align: 'start' },
-  { title: 'Variação', key: 'desVariacao', align: 'start' },
-  { title: 'Cor', key: 'desCor', align: 'start' },
-  { title: 'Acabamento', key: 'desAcabamento', align: 'start' },
-  { title: 'Saldo', key: 'saldo', align: 'start' },
-  { title: 'Ações', key: 'actions', align: 'center', sortable: false }
+  { title: 'Código', key: 'item', align: 'start' as const },
+  { title: 'Descrição', key: 'descricao', align: 'start' as const },
+  { title: 'Variação', key: 'desVariacao', align: 'start' as const },
+  { title: 'Cor', key: 'desCor', align: 'start' as const },
+  { title: 'Acabamento', key: 'desAcabamento', align: 'start' as const },
+  { title: 'Saldo', key: 'saldo', align: 'start' as const },
+  { title: 'Ações', key: 'actions', align: 'center' as const, sortable: false }
 ])
+
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth <= 600
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updateIsMobile)
+})
 
 const transformItems = (items: ItemInterface[]): ItemDetalhado[] => {
   return items.flatMap((item) =>
-    item.detalhamento.map((detalhe) => ({
-      ...item,
-      ...detalhe
-    }))
+    item.detalhamento
+      ? item.detalhamento.map((detalhe) => ({
+          ...item,
+          ...detalhe
+        }))
+      : []
   )
 }
 
-onMounted(async () => {
-  try {
-    isLoading.value = true
-    const { items: fetchedItems, error } = await fetchItems()
+const transformedItems = computed(() => transformItems(items.value))
 
-    if (error) {
-      errorMessage.value = error
-      showErrorDialog.value = true
-    } else {
-      items.value = fetchedItems
-      filteredItems.value = transformItems(fetchedItems)
-    }
-  } catch (err) {
-    errorMessage.value = 'Ocorreu um erro inesperado.'
-    showErrorDialog.value = true
-  } finally {
-    isLoading.value = false
-  }
-})
-
-function openItemDetails(item: ItemDetalhado) {
-  selectedItem.value = item
-  showSeeMoreDialog.value = true
-}
-
-const paginatedItems = computed(() =>
-  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage)
-)
-
-const applyFilter = (filter: FilterPayload) => {
-  activeFilters.value.primary = filter
-  applyAllFilters()
-}
-
-const applyMoreFilters = (filters: AdditionalFilters) => {
-  activeFilters.value.additional = filters
-  applyAllFilters()
-}
-
-const applyAllFilters = () => {
-  let filtered = transformItems(items.value)
+const filteredItems = computed(() => {
+  let filtered = transformedItems.value
 
   if (activeFilters.value.primary.value) {
     filtered = filterItems(
@@ -180,13 +157,67 @@ const applyAllFilters = () => {
     filtered = applyAdditionalFilters(filtered, activeFilters.value.additional)
   }
 
-  filteredItems.value = filtered
+  return filtered
+})
+
+const paginatedItems = computed(() =>
+  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage)
+)
+
+const responsiveHeaders = computed(() => {
+  if (isMobile.value) {
+    return headers.value.filter((header) => header.key === 'descricao' || header.key === 'actions')
+  }
+  return headers.value
+})
+
+const updateLoadingState = (loading: boolean) => {
+  isLoading.value = loading
+}
+
+const updateItems = (newItems: ItemInterface[]) => {
+  items.value = newItems
+}
+
+const updateError = (error: string | null) => {
+  errorMessage.value = error || 'Ocorreu um erro inesperado.'
+  showErrorDialog.value = !!error
+}
+
+onMounted(async () => {
+  try {
+    updateLoadingState(true)
+    await itemStore.loadItems()
+    updateItems(itemStore.items)
+  } catch (err) {
+    updateError(itemStore.error)
+  } finally {
+    updateLoadingState(false)
+  }
+})
+
+const applyFilter = (filter: FilterPayload) => {
+  activeFilters.value.primary = filter
   currentPage.value = 1
+}
+
+const applyMoreFilters = (filters: AdditionalFilters) => {
+  activeFilters.value.additional = filters
+  currentPage.value = 1
+}
+
+const openItemDetails = (item: ItemDetalhado) => {
+  selectedItem.value = item
+  showSeeMoreDialog.value = true
 }
 
 const changePage = (page: number) => {
   currentPage.value = page
 }
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateIsMobile)
+})
 </script>
 
 <style scoped>
@@ -195,14 +226,9 @@ const changePage = (page: number) => {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
 .v-data-table tbody tr:hover {
   background-color: #f5f5f5;
   cursor: pointer;
-}
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
 }
 </style>

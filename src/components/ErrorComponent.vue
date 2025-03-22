@@ -7,14 +7,18 @@
       rounded="lg"
       width="100%"
     >
-      <v-icon class="mb-5" color="error" icon="mdi-close-circle" size="112"></v-icon>
-      <h2 class="text-h5 mb-6">{{ text }}</h2>
+      <v-icon class="mb-5" :color="errorColor" size="112">{{ errorIcon }}</v-icon>
+      <div class="d-flex flex-column align-center mb-4">
+        <h2 class="text-h5 font-weight-bold">{{ text }}</h2>
+        <span class="text-subtitle-1" :class="statusColor">{{ statusText }}</span>
+      </div>
+
       <p class="mb-4 text-medium-emphasis text-body-2">{{ errorMessage }}</p>
       <v-divider class="mb-4"></v-divider>
       <div class="text-end">
         <v-btn
           class="text-none"
-          color="error"
+          :color="errorColor"
           variant="flat"
           width="90"
           rounded
@@ -28,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps, defineEmits } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const props = defineProps({
   errorMessage: {
@@ -39,9 +43,17 @@ const props = defineProps({
     type: String,
     default: 'Erro'
   },
+  status: {
+    type: Number,
+    required: true
+  },
   isActive: {
     type: Boolean,
     required: true
+  },
+  retryAction: {
+    type: Function,
+    default: null
   }
 })
 
@@ -56,8 +68,43 @@ watch(
   }
 )
 
+const errorIcon = computed(() => {
+  if (props.status >= 500) return 'mdi-server-network-off' 
+  if (props.status === 401 || props.status === 403) return 'mdi-lock-alert' 
+  if (props.status === 404) return 'mdi-file-cancel-outline' 
+  return 'mdi-close-circle' 
+})
+
+
+const errorColor = computed(() => {
+  if (props.status >= 500) return 'secondary' 
+  if (props.status === 401 || props.status === 403) return 'error' 
+  if (props.status === 404) return 'warning' 
+  return 'error' 
+})
+
+
+const statusText = computed(() => {
+  return `Status: ${props.status}`
+})
+
+
+const statusColor = computed(() => {
+  if (props.status >= 500) return 'text-secondary' 
+  if (props.status === 401 || props.status === 403) return 'text-error' 
+  if (props.status === 404) return 'text-warning' 
+  return 'text-error'
+})
+
 const closeDialog = () => {
   internalIsActive.value = false
   emit('update:isActive', false)
 }
 </script>
+
+<style scoped>
+.text-subtitle-1 {
+  font-size: 1rem;
+  font-weight: 500;
+}
+</style>

@@ -2,11 +2,22 @@ import { api } from '@/services/api'
 import { useAuthStore } from '@/stores/authStore'
 import type ItemInterface from '@/interface/item/itemInterface'
 
-export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: string }> => {
+class ApiError extends Error {
+  constructor(message: string, public status?: number, public data?: any) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+export const fetchItems = async (): Promise<ItemInterface[]> => {
   const authStore = useAuthStore()
 
   try {
-    const token = await authStore.fetchJwtToken() 
+    const token = await authStore.fetchJwtToken()
+
+    if (!token) {
+      throw new ApiError('Token de autenticação não disponível')
+    }
 
     const response = await api.get('/TSMCadGR_Unidades_Codificacao.ExecutarMetodoInterpretado', {
       params: {
@@ -18,10 +29,29 @@ export const fetchItems = async (): Promise<{ items: ItemInterface[]; error?: st
       }
     })
 
-    return { items: response.data }
-  } catch (error: any) {
-    console.error('Erro ao buscar os dados da API:', error)
-    const errorMessage = error.response?.data || 'Falha na comunicação com a API'
-    return { items: [], error: errorMessage }
+    if (!Array.isArray(response.data)) {
+      throw new ApiError('Formato de dados inválido na resposta da API')
+    }
+
+    return response.data
+  } catch (error) {
+    authStore.logout()
+    if (error instanceof ApiError) {
+      throw error
+    }
+
+    if (error instanceof Error) {
+      const status = (error as any).response?.status
+      const data = (error as any).response?.data
+      const message = data.error
+      
+      if (status === 401) {
+        throw new ApiError('Não autorizado.', status, data)
+      }
+      
+      throw new ApiError(message, status, data)
+    }
+
+    throw new ApiError('Erro desconhecido ao buscar os dados')
   }
 }

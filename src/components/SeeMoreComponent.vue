@@ -1,22 +1,69 @@
 <template>
-  <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="450">
-    <v-card v-if="item" max-width="500px" max-height="600px">
-      <v-img :max-width="500" :max-height="400" v-if="item?.imagens[0]?.url != null">
-        <v-carousel hide-delimiters show-arrows="hover">
-          <v-carousel-item v-for="(imagem, index) in item.imagens" :key="index" :src="imagem.url" />
+  <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="400">
+    <v-card v-if="item" class="detail-card">
+      <v-img 
+        v-if="hasImages" 
+        class="detail-image"
+        :max-height="300"
+        cover
+      >
+        <v-carousel 
+          v-if="item.imagens.length > 1"
+          hide-delimiters 
+          show-arrows="hover"
+          height="300"
+          class="rounded-t-lg"
+        >
+          <v-carousel-item 
+            v-for="(imagem, index) in item.imagens" 
+            :key="index" 
+            :src="imagem.url"
+            cover
+          />
         </v-carousel>
+        <img 
+          v-else 
+          :src="item.imagens[0].url" 
+          alt="Imagem do item"
+          class="single-image"
+        />
       </v-img>
-      <h3 class="text-h5 ml-5 mt-2">{{ item.descricao }}</h3>
-      <v-card-text>
-        <div>Código: {{ fullCodeItem }}</div>
-        <div>Variação: {{ item.desVariacao }}</div>
-        <div>Cor: {{ item.desCor }}</div>
-        <div>Acabamento: {{ item.desAcabamento }}</div>
-        <div>Saldo: {{ item.saldo }}</div>
+
+      <v-card-text class="detail-content pa-4">
+        <h3 class="text-h6 mb-3">{{ item.descricao }}</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="label">Código:</span>
+            <span class="value">{{ fullCodeItem }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Variação:</span>
+            <span class="value">{{ item.desVariacao }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Cor:</span>
+            <span class="value">{{ item.desCor }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Acabamento:</span>
+            <span class="value">{{ item.desAcabamento }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Saldo:</span>
+            <span class="value">{{ item.saldo }}</span>
+          </div>
+        </div>
       </v-card-text>
 
-      <v-card-actions>
-        <v-btn variant="outlined" color="error" @click="closeDialog">Fechar</v-btn>
+      <v-card-actions class="pa-3">
+        <v-btn 
+          variant="outlined" 
+          color="error" 
+          block
+          @click="closeDialog"
+        >
+          Fechar
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -37,6 +84,10 @@ const props = defineProps({
   }
 })
 
+const hasImages = computed(() => {
+  return props.item?.imagens && props.item.imagens.length > 0
+})
+
 const fullCodeItem = computed(() => {
   return props.item
     ? `${props.item.item}.${props.item.variacao}.${props.item.cor}.${props.item.acabamento}`
@@ -49,3 +100,79 @@ const closeDialog = () => {
   emit('update:isActive', false)
 }
 </script>
+
+<style scoped>
+.detail-card {
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.detail-image {
+  width: 100%;
+  background-color: #f5f5f5;
+  margin: 8px 0;
+}
+
+.single-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 8px 0;
+}
+
+.detail-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  word-break: break-word;
+}
+
+.label {
+  font-weight: 500;
+  min-width: 100px;
+  color: #666;
+  margin-right: 8px;
+}
+
+.value {
+  color: #333;
+  flex: 1;
+}
+
+:deep(.v-carousel) {
+  border-radius: 8px 8px 0 0;
+}
+
+:deep(.v-carousel__item) {
+  border-radius: 8px 8px 0 0;
+}
+
+@media (max-width: 600px) {
+  .detail-content {
+    max-height: 50vh;
+  }
+  
+  .info-item {
+    padding: 6px;
+  }
+  
+  .label {
+    min-width: 80px;
+  }
+}
+</style>
