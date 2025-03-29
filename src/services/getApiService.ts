@@ -14,7 +14,6 @@ export const fetchItems = async (): Promise<ItemInterface[]> => {
 
   try {
     const token = await authStore.fetchJwtToken()
-
     if (!token) {
       throw new ApiError('Token de autenticação não disponível')
     }
@@ -24,9 +23,7 @@ export const fetchItems = async (): Promise<ItemInterface[]> => {
         UnitEMetodo: 'ACAO_DE_VENDAS.JsonItens',
         Body: 0
       },
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` }
     })
 
     if (!Array.isArray(response.data)) {
@@ -39,18 +36,15 @@ export const fetchItems = async (): Promise<ItemInterface[]> => {
       throw error
     }
 
-    if (error instanceof Error) {
-      const status = (error as any).response?.status
-      const data = (error as any).response?.data
-      const message = data.error
-      
-      if (status === 401) {
-        throw new ApiError('Não autorizado.', status, data)
-      }
-      
-      throw new ApiError(message, status, data)
+    const axiosError = error as any
+    const status = axiosError.response?.status
+    const data = axiosError.response?.data
+    const message = data?.error || axiosError.message
+
+    if (status === 401) {
+      throw new ApiError('Não autorizado', status, data)
     }
 
-    throw new ApiError('Erro desconhecido ao buscar os dados')
+    throw new ApiError(message, status, data)
   }
 }

@@ -35,10 +35,11 @@ export const useAuthStore = defineStore('auth', {
           })
 
         return await this.tokenPromise
-      } catch (error) {
+      } catch (error: any) {
         this.logout()
-        console.error('Falha no login:', error)
-        throw new Error('Falha na autenticação. Por favor, tente novamente.')
+        const errorMessage = error.response?.data?.error || 'Falha na autenticação. Por favor, tente novamente.'
+        console.error('Falha no login:', errorMessage)
+        throw new Error(errorMessage)
       } finally {
         this.isFetchingToken = false
         this.tokenPromise = null
