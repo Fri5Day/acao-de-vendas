@@ -1,9 +1,12 @@
 import { defineStore } from 'pinia'
 import { api } from '@/services/api'
+import { getCookie, setCookie, deleteCookie } from '@/utils/cookieUtils'
+
+const JWT_COOKIE_NAME = 'jwtToken'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    jwtToken: sessionStorage.getItem('jwtToken') as string | null,
+    jwtToken: getCookie(JWT_COOKIE_NAME),
     isFetchingToken: false,
     tokenPromise: null as Promise<string> | null
   }),
@@ -29,7 +32,7 @@ export const useAuthStore = defineStore('auth', {
             const tokenAcesso = response.data.token_Acesso
             if (tokenAcesso) {
               this.jwtToken = tokenAcesso
-              sessionStorage.setItem('jwtToken', tokenAcesso)
+              setCookie(JWT_COOKIE_NAME, tokenAcesso)
             }
             return tokenAcesso
           })
@@ -48,7 +51,7 @@ export const useAuthStore = defineStore('auth', {
 
     logout() {
       this.jwtToken = null
-      sessionStorage.removeItem('jwtToken')
+      deleteCookie(JWT_COOKIE_NAME)
     }
   }
 })
