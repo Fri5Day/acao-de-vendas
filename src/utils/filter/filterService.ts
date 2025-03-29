@@ -3,12 +3,17 @@ import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface';
 export const filterItems = (items: ItemDetalhado[], filterType: string, filterValue: string) => {
   if (!filterValue) return items;
 
-  return items.filter((item) => {
-    if (filterType === 'Descrição') {
-      return item.descricao.toLowerCase().includes(filterValue.toLowerCase());
-    } else if (filterType === 'Código') {
-      return item.item.toString() === filterValue;
-    }
-    return true;
-  });
+  const searchValue = filterValue.toLowerCase();
+  
+  // Otimização para busca por código
+  if (filterType === 'Código') {
+    return items.filter((item) => item.item.toString() === filterValue);
+  }
+  
+  // Otimização para busca por descrição
+  if (filterType === 'Descrição') {
+    return items.filter((item) => item.descricao.toLowerCase().includes(searchValue));
+  }
+
+  return items;
 };

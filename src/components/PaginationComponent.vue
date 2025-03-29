@@ -1,49 +1,64 @@
 <template>
-  <div class="text-center">
-    <v-container>
-      <v-row justify="center">
-        <v-col cols="8">
-          <v-container class="max-width">
-            <v-pagination
-              :model-value="page"
-              :length="totalPages"
-              class="my-4"
-              @update:model-value="onPageChange"
-            ></v-pagination>
-          </v-container>
-        </v-col>
-      </v-row>
-    </v-container>
+  <div class="pagination-wrapper">
+    <v-pagination
+      v-model="page"
+      :length="totalPages"
+      :total-visible="isMobile ? 1 : 7"
+      class="pagination"
+      @update:model-value="onPageChange"
+    ></v-pagination>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   totalItems: number
   currentPage: number
-}>()
-
+  itemsPerPage?: number
+}>(), {
+  itemsPerPage: 12
+})
 const emit = defineEmits(['page-changed'])
 
+const isMobile = ref(false)
 const page = ref(props.currentPage)
-const itemsPerPage = 12
+const currentItemsPerPage = ref(props.itemsPerPage)
 
-const totalPages = computed(() => {
-  return Math.ceil(props.totalItems / itemsPerPage)
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 600
+  currentItemsPerPage.value = isMobile.value ? 5 : props.itemsPerPage
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
 })
 
-watch(
-  () => props.currentPage,
-  (newPage) => {
-    page.value = newPage
-  }
-)
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
+
+const totalPages = computed(() => {
+  if (props.totalItems <= 0 || currentItemsPerPage.value <= 0) return 1
+  return Math.ceil(props.totalItems / currentItemsPerPage.value)
+})
 
 const onPageChange = (newPage: number) => {
   page.value = newPage
   emit('page-changed', newPage)
 }
-
 </script>
+
+<style scoped>
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.pagination {
+  margin: 0;
+}
+</style>

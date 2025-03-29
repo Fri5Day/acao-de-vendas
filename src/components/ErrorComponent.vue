@@ -71,7 +71,6 @@ watch(
 const errorIcon = computed(() => {
   if (props.status >= 500) return 'mdi-server-network-off' 
   if (props.status === 401 || props.status === 403) return 'mdi-lock-alert' 
-  if (props.status === 404) return 'mdi-file-cancel-outline' 
   return 'mdi-close-circle' 
 })
 
@@ -79,7 +78,6 @@ const errorIcon = computed(() => {
 const errorColor = computed(() => {
   if (props.status >= 500) return 'secondary' 
   if (props.status === 401 || props.status === 403) return 'error' 
-  if (props.status === 404) return 'warning' 
   return 'error' 
 })
 
@@ -92,7 +90,6 @@ const statusText = computed(() => {
 const statusColor = computed(() => {
   if (props.status >= 500) return 'text-secondary' 
   if (props.status === 401 || props.status === 403) return 'text-error' 
-  if (props.status === 404) return 'text-warning' 
   return 'text-error'
 })
 

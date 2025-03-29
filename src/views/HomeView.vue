@@ -23,9 +23,25 @@
       </template>
 
       <template v-else>
-        <v-chip variant="outlined">
-          Total itens filtrados: {{ filteredItems?.length || 0 }}
-        </v-chip>
+        <div class="d-flex align-center filtered-items-count">
+          <v-chip variant="outlined">
+            Total: {{ filteredItems?.length || 0 }} Itens
+          </v-chip>
+
+          <v-tooltip v-if="hasActiveFilters" :text="getActiveFiltersText" location="bottom">
+            <template v-slot:activator="{ props }">
+              <v-chip
+                v-bind="props"
+                size="small"
+                color="primary"
+                class="active-filters-chip ml-2"
+                variant="elevated"
+              >
+                <v-icon icon="mdi-filter-check" size="small" class="mr-1"></v-icon>
+              </v-chip>
+            </template>
+          </v-tooltip>
+        </div>
 
         <div class="mt-5">
           <v-data-table
@@ -80,6 +96,7 @@ import { filterItems } from '@/utils/filter/filterService'
 import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
 import { getPaginatedItems } from '@/utils/pagination'
 import { useItemStore } from '@/stores/itemStore'
+import { useFilterStore } from '@/stores/filterStore'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FilterComponent from '@/components/filter/FilterComponent.vue'
 import ErrorComponent from '@/components/ErrorComponent.vue'
@@ -91,6 +108,7 @@ import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
 import type AdditionalFilters from '@/interface/filter/moreFilter'
 
 const itemStore = useItemStore()
+const filterStore = useFilterStore()
 
 const items = ref<ItemInterface[]>([])
 const selectedItem = ref<ItemDetalhado | null>(null)
@@ -100,7 +118,7 @@ const showErrorDialog = ref(false)
 const showSeeMoreDialog = ref(false)
 const isMobile = ref(window.innerWidth <= 600)
 const currentPage = ref(1)
-const itemsPerPage = 10
+const itemsPerPage = computed(() => isMobile.value ? 5 : 10)
 
 const activeFilters = ref({
   primary: { type: '', value: '' },
@@ -121,13 +139,36 @@ const headers = ref([
   { title: 'Ações', key: 'actions', align: 'center' as const, sortable: false }
 ])
 
+const hasActiveFilters = computed(() => {
+  return Object.values(filterStore.selectedFilters).some(
+    (filter) => filter.include.length > 0 || filter.exclude.length > 0
+  )
+})
+
+const getActiveFiltersText = computed(() => {
+  const filterLabels = {
+    variations: 'Variações',
+    colors: 'Cores',
+    finishes: 'Acabamentos'
+  }
+
+  return Object.entries(filterStore.selectedFilters)
+    .flatMap(([key, filter]) => {
+      const texts = []
+      if (filter.include.length > 0) {
+        texts.push(`${filterLabels[key as keyof typeof filterLabels]}: ${filter.include.length} selecionada(s)`)
+      }
+      if (filter.exclude.length > 0) {
+        texts.push(`${filterLabels[key as keyof typeof filterLabels]}: ${filter.exclude.length} excluída(s)`)
+      }
+      return texts
+    })
+    .join('\n')
+})
+
 const updateIsMobile = () => {
   isMobile.value = window.innerWidth <= 600
 }
-
-onMounted(() => {
-  window.addEventListener('resize', updateIsMobile)
-})
 
 const transformItems = (items: ItemInterface[]): ItemDetalhado[] => {
   return items.flatMap((item) =>
@@ -143,6 +184,13 @@ const transformItems = (items: ItemInterface[]): ItemDetalhado[] => {
 const transformedItems = computed(() => transformItems(items.value))
 
 const filteredItems = computed(() => {
+  if (!activeFilters.value.primary.value && 
+      !Object.values(activeFilters.value.additional).some(filter => 
+        filter.include.length > 0 || filter.exclude.length > 0
+      )) {
+    return transformedItems.value
+  }
+
   let filtered = transformedItems.value
 
   if (activeFilters.value.primary.value) {
@@ -153,7 +201,9 @@ const filteredItems = computed(() => {
     )
   }
 
-  if (Object.keys(activeFilters.value.additional).length > 0) {
+  if (Object.values(activeFilters.value.additional).some(filter => 
+    filter.include.length > 0 || filter.exclude.length > 0
+  )) {
     filtered = applyAdditionalFilters(filtered, activeFilters.value.additional)
   }
 
@@ -161,7 +211,7 @@ const filteredItems = computed(() => {
 })
 
 const paginatedItems = computed(() =>
-  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage)
+  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage.value)
 )
 
 const responsiveHeaders = computed(() => {
@@ -201,8 +251,9 @@ const applyFilter = (filter: FilterPayload) => {
   currentPage.value = 1
 }
 
-const applyMoreFilters = (filters: AdditionalFilters) => {
-  activeFilters.value.additional = filters
+const applyMoreFilters = (payload: { filters: AdditionalFilters; primaryFilter: FilterPayload }) => {
+  activeFilters.value.primary = payload.primaryFilter
+  activeFilters.value.additional = payload.filters
   currentPage.value = 1
 }
 
@@ -227,8 +278,41 @@ onUnmounted(() => {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.v-data-table tbody tr:hover {
-  background-color: #f5f5f5;
+.v-data-table :deep(.v-table__wrapper > table > tbody > tr:hover) {
+  background-color: #f8f9fa;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.active-filters-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.filtered-items-count {
+  color: #0b4667;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filtered-items-count :deep(.v-chip) {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  padding: 4px 12px;
+  height: 28px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 600px) {
+  .active-filters-chip {
+    margin-left: 8px;
+  }
 }
 </style>

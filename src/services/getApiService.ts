@@ -35,7 +35,6 @@ export const fetchItems = async (): Promise<ItemInterface[]> => {
 
     return response.data
   } catch (error) {
-    authStore.logout()
     if (error instanceof ApiError) {
       throw error
     }

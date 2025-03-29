@@ -31,70 +31,79 @@
       </v-col>
 
       <v-col cols="12" sm="12" md="4" lg="3" class="margin">
-        <div class="d-flex align-center gap-2">
-          <v-btn color="success" elevation="2" @click="emitFilter">Buscar</v-btn>
+        <v-row no-gutters>
+          <v-col cols="12" class="d-flex align-center gap-2 mb-2 mb-sm-0">
+            <v-btn color="success" elevation="2" block class="search-button" @click="emitFilter">
+              <v-icon icon="mdi-magnify" class="mr-1"></v-icon>
+              Buscar
+            </v-btn>
 
-          <v-btn color="success" elevation="2" variant="outlined" @click="openMoreFiltersDialog">
-            +Filtros
-          </v-btn>
+            <v-btn
+              color="success"
+              elevation="2"
+              variant="outlined"
+              @click="openMoreFiltersDialog"
+              class="filter-button"
+              block
+            >
+              <v-icon icon="mdi-filter-variant" class="mr-1"></v-icon>
+              Filtros
+            </v-btn>
 
-          <v-tooltip text="Limpar filtros">
-            <template v-slot:activator="{ props }">
-              <v-btn
-                v-bind="props"
-                icon="mdi-filter-remove"
-                color="error"
-                variant="text"
-                @click="emptyFilter"
-              />
-            </template>
-          </v-tooltip>
-        </div>
+            <v-tooltip text="Limpar filtros">
+              <template v-slot:activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  icon="mdi-filter-remove"
+                  color="error"
+                  variant="text"
+                  @click="emptyFilter"
+                  class="clear-button"
+                />
+              </template>
+            </v-tooltip>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
 
     <MoreFilterComponent
       v-model:dialog="showMoreFiltersDialog"
       :selectedFilters="selectedFilters"
+      :primaryFilter="{ type: filterType, value: filterValue }"
       @apply-more-filters="onApplyMoreFilters"
     />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, computed } from 'vue'
 import MoreFilterComponent from '@/components/filter/MoreFilterComponent.vue'
+import { useFilterStore } from '@/stores/filterStore'
 
 const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
-  (
-    e: 'apply-more-filters',
-    filters: { variations: { include: string[]; exclude: string[] }
-    colors: { include: string[]; exclude: string[] }
-    finishes: { include: string[]; exclude: string[] } }
-  ): void
-  (e: 'clear-filters'): void
+  (e: 'apply-more-filters', payload: any): void
 }>()
+
+const filterStore = useFilterStore()
 
 const filterType = ref('Descrição')
 const filterValue = ref('')
 const filterOptions = ['Descrição', 'Código']
 const showMoreFiltersDialog = ref(false)
 
-const selectedFilters = ref<{
-  variations: { include: string[]; exclude: string[] }
-  colors: { include: string[]; exclude: string[] }
-  finishes: { include: string[]; exclude: string[] }
-}>({
-  variations: { include: [], exclude: [] },
-  colors: { include: [], exclude: [] },
-  finishes: { include: [], exclude: [] }
-})
+const selectedFilters = computed(() => filterStore.selectedFilters)
 
 const emitFilter = () => {
-  emit('filter', {
+  const filterPayload = {
     type: filterType.value,
     value: filterValue.value.trim()
+  }
+  emit('filter', filterPayload)
+  emit('apply-more-filters', {
+    filters: selectedFilters.value,
+    primaryFilter: filterPayload
   })
 }
 
@@ -104,23 +113,21 @@ const openMoreFiltersDialog = () => {
 
 const emptyFilter = () => {
   filterValue.value = ''
-  selectedFilters.value = {
-    variations: { include: [], exclude: [] },
-    colors: { include: [], exclude: [] },
-    finishes: { include: [], exclude: [] }
-  }
-  emitFilter()
-  emit('apply-more-filters', selectedFilters.value)
+  filterStore.clearFilters()
+  emit('filter', { type: filterType.value, value: '' })
+  emit('apply-more-filters', {
+    filters: {
+      variations: { include: [], exclude: [] },
+      colors: { include: [], exclude: [] },
+      finishes: { include: [], exclude: [] }
+    },
+    primaryFilter: { type: filterType.value, value: '' }
+  })
 }
 
-const onApplyMoreFilters = (filters: {
-  variations: { include: string[]; exclude: string[] }
-  colors: { include: string[]; exclude: string[] }
-  finishes: { include: string[]; exclude: string[] }
-}) => {
-  selectedFilters.value = filters
-  emit('apply-more-filters', filters)
+const onApplyMoreFilters = (payload: { filters: typeof selectedFilters.value; primaryFilter: { type: string; value: string } }) => {
   showMoreFiltersDialog.value = false
+  emit('apply-more-filters', payload)
 }
 </script>
 
@@ -131,5 +138,28 @@ const onApplyMoreFilters = (filters: {
 
 .margin {
   margin-top: -20px;
+}
+
+.filter-button,
+.search-button {
+  min-width: 120px;
+  max-width: 120px;
+}
+
+.clear-button {
+  margin-left: 0;
+}
+
+@media (max-width: 600px) {
+  .filter-button,
+  .search-button {
+    min-width: 120px;
+    max-width: 120px;
+    padding: 0 12px;
+  }
+
+  .margin {
+    margin-top: 0;
+  }
 }
 </style>

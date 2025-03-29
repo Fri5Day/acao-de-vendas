@@ -12,37 +12,37 @@ interface AdditionalFilters {
 }
 
 export const applyAdditionalFilters = (items: ItemDetalhado[], filters: AdditionalFilters): ItemDetalhado[] => {
-  let result = items;
-
-  if (filters.variations) {
-    result = applyFilterOptions(result, filters.variations, 'desVariacao');
-  }
-  if (filters.colors) {
-    result = applyFilterOptions(result, filters.colors, 'desCor');
-  }
-  if (filters.finishes) {
-    result = applyFilterOptions(result, filters.finishes, 'desAcabamento');
+  if (!filters.variations && !filters.colors && !filters.finishes) {
+    return items;
   }
 
-  return result;
-};
+  const hasActiveFilters = Object.values(filters).some(filter => 
+    filter && (filter.include.length > 0 || filter.exclude.length > 0)
+  );
 
-const applyFilterOptions = (
-  items: ItemDetalhado[],
-  options: FilterOptions,
-  property: keyof ItemDetalhado
-): ItemDetalhado[] => {
-  let filtered = items;
-
-  // Aplicar inclusões
-  if (options.include.length > 0) {
-    filtered = filtered.filter(item => options.include.includes(item[property] as string));
+  if (!hasActiveFilters) {
+    return items;
   }
 
-  // Aplicar exclusões
-  if (options.exclude.length > 0) {
-    filtered = filtered.filter(item => !options.exclude.includes(item[property] as string));
-  }
+  return items.filter(item => {
+    if (filters.variations) {
+      const value = item.desVariacao as string;
+      if (filters.variations.include.length > 0 && !filters.variations.include.includes(value)) return false;
+      if (filters.variations.exclude.length > 0 && filters.variations.exclude.includes(value)) return false;
+    }
 
-  return filtered;
+    if (filters.colors) {
+      const value = item.desCor as string;
+      if (filters.colors.include.length > 0 && !filters.colors.include.includes(value)) return false;
+      if (filters.colors.exclude.length > 0 && filters.colors.exclude.includes(value)) return false;
+    }
+
+    if (filters.finishes) {
+      const value = item.desAcabamento as string;
+      if (filters.finishes.include.length > 0 && !filters.finishes.include.includes(value)) return false;
+      if (filters.finishes.exclude.length > 0 && filters.finishes.exclude.includes(value)) return false;
+    }
+
+    return true;
+  });
 };

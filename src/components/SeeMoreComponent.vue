@@ -1,32 +1,27 @@
 <template>
   <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="400">
     <v-card v-if="item" class="detail-card">
-      <v-img 
-        v-if="hasImages" 
-        class="detail-image"
-        :max-height="300"
-        cover
-      >
-        <v-carousel 
+      <v-card-title class="d-flex justify-space-between align-center pa-2 ml-2">
+        <span class="text-h6">Item detalhado</span>
+        <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
+      </v-card-title>
+      <v-divider />
+      <v-img v-if="hasImages" class="detail-image" :max-height="300" cover>
+        <v-carousel
           v-if="item.imagens.length > 1"
-          hide-delimiters 
+          hide-delimiters
           show-arrows="hover"
           height="300"
           class="rounded-t-lg"
         >
-          <v-carousel-item 
-            v-for="(imagem, index) in item.imagens" 
-            :key="index" 
+          <v-carousel-item
+            v-for="(imagem, index) in item.imagens"
+            :key="index"
             :src="imagem.url"
             cover
           />
         </v-carousel>
-        <img 
-          v-else 
-          :src="item.imagens[0].url" 
-          alt="Imagem do item"
-          class="single-image"
-        />
+        <img v-else :src="item.imagens[0].url" alt="Imagem do item" class="single-image" />
       </v-img>
 
       <v-card-text class="detail-content pa-4">
@@ -54,17 +49,6 @@
           </div>
         </div>
       </v-card-text>
-
-      <v-card-actions class="pa-3">
-        <v-btn 
-          variant="outlined" 
-          color="error" 
-          block
-          @click="closeDialog"
-        >
-          Fechar
-        </v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -105,13 +89,13 @@ const closeDialog = () => {
 .detail-card {
   border-radius: 8px;
   overflow: hidden;
-  padding: 8px;
+  padding: 0;
 }
 
 .detail-image {
   width: 100%;
-  background-color: #f5f5f5;
   margin: 8px 0;
+  padding: 0 16px;
 }
 
 .single-image {
@@ -119,6 +103,7 @@ const closeDialog = () => {
   height: 100%;
   object-fit: cover;
   margin: 8px 0;
+  border-radius: 8px;
 }
 
 .detail-content {
@@ -155,22 +140,22 @@ const closeDialog = () => {
 }
 
 :deep(.v-carousel) {
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px;
 }
 
 :deep(.v-carousel__item) {
-  border-radius: 8px 8px 0 0;
+  border-radius: 8px;
 }
 
 @media (max-width: 600px) {
   .detail-content {
     max-height: 50vh;
   }
-  
+
   .info-item {
     padding: 6px;
   }
-  
+
   .label {
     min-width: 80px;
   }

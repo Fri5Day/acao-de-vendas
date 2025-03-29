@@ -1,9 +1,9 @@
 export default interface FilterConfig {
-    key: string
+    key: 'variations' | 'colors' | 'finishes'
     label: string
     icon: string
     items: string[]
-    selected: string[]
-    excluded: string[]
-  }
+    selectedItems: string[]
+    filterType: 'include' | 'exclude'
+}
   

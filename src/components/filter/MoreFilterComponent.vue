@@ -1,84 +1,61 @@
 <template>
   <v-dialog v-model="dialogModel" max-width="600" @click:outside="closeDialog">
-    <transition name="slide-alert">
-      <v-alert
-        v-if="alertFilter"
-        class="alert-top-right"
-        text="Selecione ao menos um filtro para aplicar!"
-        type="warning"
-      ></v-alert>
-    </transition>
-    <v-card>
-      <v-card-title class="d-flex align-center">
-        <v-icon icon="mdi-filter-variant" class="mr-2"></v-icon>
-        Filtros Avançados
-        <v-spacer></v-spacer>
-        <v-btn icon="mdi-close" variant="text" density="comfortable" @click="closeDialog"></v-btn>
+    <v-card class="d-flex flex-column" style="max-height: 90vh">
+      <v-card-title class="d-flex align-center dialog-header">
+        <div class="d-flex align-center ml-2">
+          <v-icon icon="mdi-filter-variant" class="mr-2"></v-icon>
+          Filtros Avançados
+        </div>
+        <v-spacer />
+        <v-btn
+          class="mr-2"
+          icon="mdi-close"
+          variant="text"
+          density="comfortable"
+          @click="closeDialog"
+        ></v-btn>
       </v-card-title>
-      <v-card-text>
-        <v-row no-gutters>
-          <v-col cols="12" v-for="filter in filters" :key="filter.key" class="mb-4">
-            <v-card variant="outlined" class="pa-3">
-              <div class="d-flex align-center mb-2">
-                <v-icon :icon="filter.icon" class="mr-2"></v-icon>
-                <span class="text-subtitle-1 font-weight-medium">{{ filter.label }}</span>
-              </div>
 
-              <v-row no-gutters>
-                <v-col cols="12" class="mb-2">
-                  <v-select
-                    v-model="filter.selected"
-                    :items="filter.items"
-                    :label="'Selecionar ' + filter.label"
-                    multiple
-                    chips
-                    closable-chips
-                    density="compact"
-                    variant="outlined"
-                    class="mb-2"
-                  >
-                    <template v-slot:prepend>
-                      <v-icon icon="mdi-checkbox-multiple-marked"></v-icon>
-                    </template>
-                  </v-select>
-                </v-col>
+      <v-divider></v-divider>
 
-                <v-col cols="12">
-                  <v-select
-                    v-model="filter.excluded"
-                    :items="filter.items"
-                    :label="'Excluir ' + filter.label"
-                    multiple
-                    chips
-                    closable-chips
-                    density="compact"
-                    variant="outlined"
-                    color="error"
-                  >
-                    <template v-slot:prepend>
-                      <v-icon icon="mdi-close-circle"></v-icon>
-                    </template>
-                  </v-select>
-                </v-col>
-              </v-row>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-card-text>
+      <div class="flex-grow-1 overflow-y-auto">
+        <v-card-text class="pa-4">
+          <v-row no-gutters>
+            <v-col cols="12" v-for="(filter, index) in filters" :key="filter.key" class="mb-4">
+              <FilterCard
+                v-model="filters[index]"
+                :label="filter.label"
+                :icon="filter.icon"
+                :items="filter.items"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </div>
+
+      <v-divider></v-divider>
+
       <v-card-actions class="pa-4">
         <v-row no-gutters>
-          <v-col cols="12" sm="6" class="d-flex justify-center">
-            <v-btn color="error" variant="text" block class="mb-2 mb-sm-0" @click="clearAllFilters">
+          <v-col cols="12" sm="6" class="d-flex justify-center pr-sm-2">
+            <v-btn
+              color="error"
+              variant="text"
+              block
+              class="mb-2 mb-sm-0"
+              @click="clearAllFilters"
+              prepend-icon="mdi-close-circle"
+            >
               Limpar Todos
             </v-btn>
           </v-col>
-          <v-col cols="12" sm="6" class="d-flex justify-center">
+          <v-col cols="12" sm="6" class="d-flex justify-center pl-sm-2">
             <v-btn
-              color="primary"
-              variant="outlined"
-              :loading="isApplying"
+              color="success"
+              variant="elevated"
               block
               @click="applyFilters"
+              prepend-icon="mdi-check-circle"
             >
               Aplicar Filtros
             </v-btn>
@@ -92,12 +69,15 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useItemStore } from '@/stores/itemStore'
+import { useFilterStore } from '@/stores/filterStore'
+import FilterCard from './FilterCard.vue'
 import type FilterConfig from '@/interface/filter/filterConfig'
 import type FilterState from '@/interface/filter/filterState'
 
 const props = defineProps<{
   dialog: boolean
-  selectedFilters?: FilterState
+  selectedFilters: FilterState
+  primaryFilter: { type: string; value: string }
 }>()
 
 const emit = defineEmits(['update:dialog', 'apply-more-filters'])
@@ -108,6 +88,9 @@ const dialogModel = computed({
 })
 
 const itemStore = useItemStore()
+const filterStore = useFilterStore()
+
+const originalFilters = ref<FilterConfig[]>([])
 
 const filters = ref<FilterConfig[]>([
   {
@@ -115,29 +98,26 @@ const filters = ref<FilterConfig[]>([
     label: 'Variações',
     icon: 'mdi-shape-outline',
     items: [],
-    selected: [],
-    excluded: []
+    selectedItems: [],
+    filterType: 'include'
   },
   {
     key: 'colors',
     label: 'Cores',
     icon: 'mdi-palette',
     items: [],
-    selected: [],
-    excluded: []
+    selectedItems: [],
+    filterType: 'include'
   },
   {
     key: 'finishes',
     label: 'Acabamentos',
     icon: 'mdi-texture',
     items: [],
-    selected: [],
-    excluded: []
+    selectedItems: [],
+    filterType: 'include'
   }
 ])
-
-const isApplying = ref(false)
-const alertFilter = ref(false)
 
 const uniqueValues = computed(() => {
   if (!itemStore.items.length) return null
@@ -178,106 +158,111 @@ watch(
   { immediate: true }
 )
 
-const hasActiveFilters = computed(() => {
-  return filters.value.some(
-    (filter: FilterConfig) => filter.selected.length > 0 || filter.excluded.length > 0
-  )
-})
-
-const applyFilters = () => {
-  try {
-    isApplying.value = true
-
-    if (!hasActiveFilters.value) {
-      alertFilter.value = true
-      setTimeout(() => (alertFilter.value = false), 4000)
-      return
-    }
-
-    const filtersToApply = filters.value.reduce<FilterState>(
-      (acc: FilterState, filter: FilterConfig) => {
-        acc[filter.key as keyof FilterState] = {
-          include: filter.selected,
-          exclude: filter.excluded
-        }
-        return acc
-      },
-      {
-        variations: { include: [], exclude: [] },
-        colors: { include: [], exclude: [] },
-        finishes: { include: [], exclude: [] }
-      }
-    )
-
-    emit('apply-more-filters', filtersToApply)
-    closeDialog()
-  } catch (error) {
-    console.error('Erro ao aplicar filtros:', error)
-  } finally {
-    isApplying.value = false
-  }
-}
-
-const clearAllFilters = () => {
-  filters.value.forEach((filter: FilterConfig) => {
-    filter.selected = []
-    filter.excluded = []
-  })
-}
-
 watch(
-  () => props.selectedFilters,
+  () => filterStore.selectedFilters,
   (newSelectedFilters) => {
     if (newSelectedFilters) {
       filters.value.forEach((filter: FilterConfig) => {
         const key = filter.key as keyof FilterState
-        filter.selected = newSelectedFilters[key].include
-        filter.excluded = newSelectedFilters[key].exclude
+        const hasExclude = newSelectedFilters[key].exclude.length > 0
+
+        filter.filterType = hasExclude ? 'exclude' : 'include'
+        filter.selectedItems = hasExclude
+          ? [...newSelectedFilters[key].exclude]
+          : [...newSelectedFilters[key].include]
       })
+
+      originalFilters.value = filters.value.map((filter) => ({
+        ...filter,
+        selectedItems: [...filter.selectedItems],
+        filterType: filter.filterType
+      }))
+    } else {
+      filters.value.forEach((filter) => {
+        filter.selectedItems = []
+        filter.filterType = 'include'
+      })
+      originalFilters.value = filters.value.map((filter) => ({
+        ...filter,
+        selectedItems: [],
+        filterType: 'include'
+      }))
     }
   },
   { immediate: true }
 )
 
+const clearAllFilters = () => {
+  filters.value.forEach((filter: FilterConfig) => {
+    filter.selectedItems = []
+    filter.filterType = 'include'
+  })
+}
+
 const closeDialog = () => {
+  filters.value = originalFilters.value.map((filter) => ({
+    ...filter,
+    selectedItems: [...filter.selectedItems],
+    filterType: filter.filterType
+  }))
+  emit('update:dialog', false)
+}
+
+const applyFilters = () => {
+  const filtersToApply = filters.value.reduce<FilterState>(
+    (acc: FilterState, filter: FilterConfig) => {
+      acc[filter.key as keyof FilterState] = {
+        include: filter.filterType === 'include' ? filter.selectedItems : [],
+        exclude: filter.filterType === 'exclude' ? filter.selectedItems : []
+      }
+      return acc
+    },
+    {
+      variations: { include: [], exclude: [] },
+      colors: { include: [], exclude: [] },
+      finishes: { include: [], exclude: [] }
+    }
+  )
+
+  originalFilters.value = filters.value.map((filter) => ({
+    ...filter,
+    selectedItems: [...filter.selectedItems],
+    filterType: filter.filterType
+  }))
+
+  filterStore.updateFilters(filtersToApply)
+  emit('apply-more-filters', {
+    filters: filtersToApply,
+    primaryFilter: props.primaryFilter
+  })
   emit('update:dialog', false)
 }
 </script>
 
 <style scoped>
-.alert-top-right {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  width: auto;
-  max-width: calc(100% - 20px);
+.dialog-header {
+  padding: 16px;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 1;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-.slide-alert-enter-active,
-.slide-alert-leave-active {
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
+:deep(.v-card-title) {
+  padding: 0;
 }
 
-.slide-alert-enter-from {
-  transform: translateX(10%);
-  opacity: 0;
+.flex-grow-1 {
+  flex-grow: 1;
 }
 
-.slide-alert-enter-to {
-  transform: translateX(0);
-  opacity: 1;
+.overflow-y-auto {
+  overflow-y: auto;
 }
 
-.slide-alert-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-}
-
-.slide-alert-leave-to {
-  transform: translateX(10%);
-  opacity: 0;
+:deep(.v-card-actions) {
+  background-color: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 </style>
