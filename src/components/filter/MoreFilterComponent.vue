@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialogModel" max-width="600" @click:outside="closeDialog">
+  <v-dialog v-model="dialogModel" max-width="600" persistent>
     <v-card class="d-flex flex-column" style="max-height: 90vh">
       <v-card-title class="d-flex align-center dialog-header">
         <div class="d-flex align-center ml-2">

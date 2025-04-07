@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="internalIsActive" max-width="500">
+  <v-dialog v-model="internalIsActive" max-width="500" persistent>
     <v-sheet
       class="pa-4 text-center mx-auto"
       elevation="12"
@@ -69,27 +69,24 @@ watch(
 )
 
 const errorIcon = computed(() => {
-  if (props.status >= 500) return 'mdi-server-network-off' 
-  if (props.status === 401 || props.status === 403) return 'mdi-lock-alert' 
-  return 'mdi-close-circle' 
+  if (props.status >= 500) return 'mdi-server-network-off'
+  if (props.status === 401 || props.status === 403) return 'mdi-lock-alert'
+  return 'mdi-close-circle'
 })
-
 
 const errorColor = computed(() => {
-  if (props.status >= 500) return 'secondary' 
-  if (props.status === 401 || props.status === 403) return 'error' 
-  return 'error' 
+  if (props.status >= 500) return 'secondary'
+  if (props.status === 401 || props.status === 403) return 'error'
+  return 'error'
 })
-
 
 const statusText = computed(() => {
   return `Status: ${props.status}`
 })
 
-
 const statusColor = computed(() => {
-  if (props.status >= 500) return 'text-secondary' 
-  if (props.status === 401 || props.status === 403) return 'text-error' 
+  if (props.status >= 500) return 'text-secondary'
+  if (props.status === 401 || props.status === 403) return 'text-error'
   return 'text-error'
 })
 

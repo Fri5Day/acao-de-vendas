@@ -1,57 +1,60 @@
 <template>
-  <v-card variant="outlined" class="filter-card">
-    <div class="d-flex align-center justify-space-between pa-4 flex-wrap">
-      <div class="d-flex align-center mb-2 mb-sm-0">
-        <v-icon :icon="icon" class="mr-2" :color="modelValue.filterType === 'include' ? 'primary' : 'error'"></v-icon>
-        <span class="text-subtitle-1 font-weight-medium filter-label">{{ label }}</span>
-      </div>
-      <v-radio-group
-        v-model="filterType"
-        inline 
-        density="compact"
-        class="radio-group ma-0"
-      >
-        <v-radio
-          label="Seleção"
-          value="include"
-          color="primary"
-          density="compact"
-          class="radio-button"
-        ></v-radio>
-        <v-radio
-          label="Exceção"
-          value="exclude"
-          color="error"
-          density="compact"
-          class="radio-button"
-        ></v-radio>
-      </v-radio-group>
-    </div>
-
-    <v-divider></v-divider>
-
-    <div class="pa-4">
-      <v-select
-        v-model="selectedItems"
-        :items="items"
-        :label="'Selecionar ' + label"
-        multiple
-        chips
-        closable-chips
-        variant="outlined"
-        density="comfortable"
-        :color="modelValue.filterType === 'include' ? 'primary' : 'error'"
-        hide-details
-      >
-        <template v-slot:prepend>
-          <v-icon 
-            :icon="modelValue.filterType === 'include' ? 'mdi-checkbox-multiple-marked' : 'mdi-close-circle'" 
+    <v-card variant="outlined" class="filter-card" persistent>
+      <div class="d-flex align-center justify-space-between pa-4 flex-wrap">
+        <div class="d-flex align-center mb-2 mb-sm-0">
+          <v-icon
+            :icon="icon"
+            class="mr-2"
             :color="modelValue.filterType === 'include' ? 'primary' : 'error'"
           ></v-icon>
-        </template>
-      </v-select>
-    </div>
-  </v-card>
+          <span class="text-subtitle-1 font-weight-medium filter-label">{{ label }}</span>
+        </div>
+        <v-radio-group v-model="filterType" inline density="compact" class="radio-group ma-0">
+          <v-radio
+            label="Seleção"
+            value="include"
+            color="primary"
+            density="compact"
+            class="radio-button"
+          ></v-radio>
+          <v-radio
+            label="Exceção"
+            value="exclude"
+            color="error"
+            density="compact"
+            class="radio-button"
+          ></v-radio>
+        </v-radio-group>
+      </div>
+
+      <v-divider></v-divider>
+
+      <div class="pa-4">
+        <v-select
+          v-model="selectedItems"
+          :items="items"
+          :label="'Selecionar ' + label"
+          multiple
+          chips
+          closable-chips
+          variant="outlined"
+          density="comfortable"
+          :color="modelValue.filterType === 'include' ? 'primary' : 'error'"
+          hide-details
+        >
+          <template v-slot:prepend>
+            <v-icon
+              :icon="
+                modelValue.filterType === 'include'
+                  ? 'mdi-checkbox-multiple-marked'
+                  : 'mdi-close-circle'
+              "
+              :color="modelValue.filterType === 'include' ? 'primary' : 'error'"
+            ></v-icon>
+          </template>
+        </v-select>
+      </div>
+    </v-card>
 </template>
 
 <script setup lang="ts">

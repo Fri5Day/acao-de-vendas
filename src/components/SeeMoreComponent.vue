@@ -1,5 +1,5 @@
 <template>
-  <v-dialog :model-value="isActive" @update:model-value="closeDialog" max-width="400">
+  <v-dialog :model-value="isActive" persistent max-width="450">
     <v-card v-if="item" class="detail-card">
       <v-card-title class="d-flex justify-space-between align-center pa-2 ml-2">
         <span class="text-h6">Item detalhado</span>
@@ -86,12 +86,6 @@ const closeDialog = () => {
 </script>
 
 <style scoped>
-.detail-card {
-  border-radius: 8px;
-  overflow: hidden;
-  padding: 0;
-}
-
 .detail-image {
   width: 100%;
   margin: 8px 0;
@@ -102,13 +96,7 @@ const closeDialog = () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  margin: 8px 0;
   border-radius: 8px;
-}
-
-.detail-content {
-  max-height: 60vh;
-  overflow-y: auto;
 }
 
 .info-list {
@@ -132,32 +120,5 @@ const closeDialog = () => {
   min-width: 100px;
   color: #666;
   margin-right: 8px;
-}
-
-.value {
-  color: #333;
-  flex: 1;
-}
-
-:deep(.v-carousel) {
-  border-radius: 8px;
-}
-
-:deep(.v-carousel__item) {
-  border-radius: 8px;
-}
-
-@media (max-width: 600px) {
-  .detail-content {
-    max-height: 50vh;
-  }
-
-  .info-item {
-    padding: 6px;
-  }
-
-  .label {
-    min-width: 80px;
-  }
 }
 </style>
