@@ -21,7 +21,7 @@
             cover
           />
         </v-carousel>
-        <img v-else :src="item.imagens[0].url" alt="Imagem do item" class="single-image" />
+        <img v-else :src="item.url" alt="Imagem do item" class="single-image" />
       </v-img>
 
       <v-card-text class="detail-content pa-4">
@@ -45,7 +45,7 @@
           </div>
           <div class="info-item">
             <span class="label">Saldo:</span>
-            <span class="value">{{ item.saldo }}</span>
+            <span class="value">{{ item.qtMontagem }}</span>
           </div>
         </div>
       </v-card-text>

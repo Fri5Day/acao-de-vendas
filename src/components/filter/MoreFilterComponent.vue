@@ -129,13 +129,9 @@ const uniqueValues = computed(() => {
   }
 
   itemStore.items.forEach((item) => {
-    if (item.detalhamento?.length) {
-      item.detalhamento.forEach((detalhe) => {
-        if (detalhe.desVariacao) values.variations.add(detalhe.desVariacao)
-        if (detalhe.desCor) values.colors.add(detalhe.desCor)
-        if (detalhe.desAcabamento) values.finishes.add(detalhe.desAcabamento)
-      })
-    }
+    if (item.desVariacao) values.variations.add(item.desVariacao)
+    if (item.desCor) values.colors.add(item.desCor)
+    if (item.desAcabamento) values.finishes.add(item.desAcabamento)
   })
 
   return {

@@ -135,7 +135,7 @@ const headers = ref([
   { title: 'Variação', key: 'desVariacao', align: 'start' as const },
   { title: 'Cor', key: 'desCor', align: 'start' as const },
   { title: 'Acabamento', key: 'desAcabamento', align: 'start' as const },
-  { title: 'Saldo', key: 'saldo', align: 'start' as const },
+  { title: 'Saldo', key: 'qtMontagem', align: 'start' as const },
   { title: 'Ações', key: 'actions', align: 'center' as const, sortable: false }
 ])
 
@@ -170,28 +170,15 @@ const updateIsMobile = () => {
   isMobile.value = window.innerWidth <= 600
 }
 
-const transformItems = (items: ItemInterface[]): ItemDetalhado[] => {
-  return items.flatMap((item) =>
-    item.detalhamento
-      ? item.detalhamento.map((detalhe) => ({
-          ...item,
-          ...detalhe
-        }))
-      : []
-  )
-}
-
-const transformedItems = computed(() => transformItems(items.value))
-
 const filteredItems = computed(() => {
   if (!activeFilters.value.primary.value && 
       !Object.values(activeFilters.value.additional).some(filter => 
         filter.include.length > 0 || filter.exclude.length > 0
       )) {
-    return transformedItems.value
+    return items.value
   }
 
-  let filtered = transformedItems.value
+  let filtered = items.value
 
   if (activeFilters.value.primary.value) {
     filtered = filterItems(
