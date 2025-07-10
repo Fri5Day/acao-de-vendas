@@ -30,7 +30,7 @@
       <v-divider></v-divider>
 
       <div class="pa-4">
-        <v-select
+        <v-autocomplete
           v-model="selectedItems"
           :items="items"
           :label="'Selecionar ' + label"
@@ -52,7 +52,7 @@
               :color="modelValue.filterType === 'include' ? 'primary' : 'error'"
             ></v-icon>
           </template>
-        </v-select>
+        </v-autocomplete>
       </div>
     </v-card>
 </template>

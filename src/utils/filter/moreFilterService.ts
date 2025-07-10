@@ -1,17 +1,17 @@
-import type { ItemDetalhado } from "@/interface/item/itemDetalhadoInterface";
+import type ItemInterface from "@/interface/item/itemInterface";
 
 interface FilterOptions {
   include: string[];
   exclude: string[];
 }
 
-interface AdditionalFilters {
+export interface AdditionalFilters {
   variations?: FilterOptions;
   colors?: FilterOptions;
   finishes?: FilterOptions;
 }
 
-export const applyAdditionalFilters = (items: ItemDetalhado[], filters: AdditionalFilters): ItemDetalhado[] => {
+export const applyAdditionalFilters = (items: ItemInterface[], filters: AdditionalFilters): ItemInterface[] => {
   if (!filters.variations && !filters.colors && !filters.finishes) {
     return items;
   }

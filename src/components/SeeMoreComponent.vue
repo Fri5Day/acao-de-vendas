@@ -6,23 +6,23 @@
         <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
       </v-card-title>
       <v-divider />
-      <v-img v-if="hasImages" class="detail-image" :max-height="300" cover>
-        <v-carousel
-          v-if="item.imagens.length > 1"
-          hide-delimiters
-          show-arrows="hover"
-          height="300"
-          class="rounded-t-lg"
-        >
-          <v-carousel-item
-            v-for="(imagem, index) in item.imagens"
-            :key="index"
-            :src="imagem.url"
-            cover
-          />
-        </v-carousel>
-        <img v-else :src="item.url" alt="Imagem do item" class="single-image" />
-      </v-img>
+      
+      <!-- Exibição de imagem -->
+      <div v-if="hasImage" class="detail-image">
+        <v-img
+          :src="item.url"
+          :max-height="300"
+          cover
+          class="single-image"
+          alt="Imagem do item"
+        />
+      </div>
+
+      <!-- Mensagem quando não há imagem -->
+      <!-- <div v-else class="no-image-message">
+        <v-icon icon="mdi-image-off" size="large" color="grey"></v-icon>
+        <p class="text-grey">Nenhuma imagem disponível para este item</p>
+      </div> -->
 
       <v-card-text class="detail-content pa-4">
         <h3 class="text-h6 mb-3">{{ item.descricao }}</h3>
@@ -55,7 +55,7 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed } from 'vue'
-import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
+import type ItemInterface from '@/interface/item/itemInterface'
 
 const props = defineProps({
   isActive: {
@@ -63,13 +63,13 @@ const props = defineProps({
     required: true
   },
   item: {
-    type: Object as () => ItemDetalhado | null,
+    type: Object as () => ItemInterface | null,
     required: true
   }
 })
 
-const hasImages = computed(() => {
-  return props.item?.imagens && props.item.imagens.length > 0
+const hasImage = computed(() => {
+  return props.item?.url && props.item.url.trim() !== ''
 })
 
 const fullCodeItem = computed(() => {
@@ -94,9 +94,16 @@ const closeDialog = () => {
 
 .single-image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
   border-radius: 8px;
+}
+
+.no-image-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px;
+  text-align: center;
 }
 
 .info-list {

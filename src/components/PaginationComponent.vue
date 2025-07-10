@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
   totalItems: number
@@ -30,6 +30,11 @@ const checkMobile = () => {
   isMobile.value = window.innerWidth <= 600
   currentItemsPerPage.value = isMobile.value ? 5 : props.itemsPerPage
 }
+
+// Watcher para sincronizar a página interna com a externa
+watch(() => props.currentPage, (newPage) => {
+  page.value = newPage
+}, { immediate: true })
 
 onMounted(() => {
   checkMobile()

@@ -1,6 +1,6 @@
-import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface';
+import type ItemInterface from '@/interface/item/itemInterface';
 
-export const filterItems = (items: ItemDetalhado[], filterType: string, filterValue: string) => {
+export const filterItems = (items: ItemInterface[], filterType: string, filterValue: string) => {
   if (!filterValue) return items;
 
   const searchValue = filterValue.toLowerCase();

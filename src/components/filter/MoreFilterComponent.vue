@@ -73,11 +73,13 @@ import { useFilterStore } from '@/stores/filterStore'
 import FilterCard from './FilterCard.vue'
 import type FilterConfig from '@/interface/filter/filterConfig'
 import type FilterState from '@/interface/filter/filterState'
+import type ItemInterface from '@/interface/item/itemInterface'
 
 const props = defineProps<{
   dialog: boolean
   selectedFilters: FilterState
   primaryFilter: { type: string; value: string }
+  filteredItems?: ItemInterface[]
 }>()
 
 const emit = defineEmits(['update:dialog', 'apply-more-filters'])
@@ -120,7 +122,11 @@ const filters = ref<FilterConfig[]>([
 ])
 
 const uniqueValues = computed(() => {
-  if (!itemStore.items.length) return null
+  const itemsToUse = props.filteredItems && props.filteredItems.length > 0 
+    ? props.filteredItems 
+    : itemStore.items
+
+  if (!itemsToUse.length) return null
 
   const values = {
     variations: new Set<string>(),
@@ -128,7 +134,7 @@ const uniqueValues = computed(() => {
     finishes: new Set<string>()
   }
 
-  itemStore.items.forEach((item) => {
+  itemsToUse.forEach((item) => {
     if (item.desVariacao) values.variations.add(item.desVariacao)
     if (item.desCor) values.colors.add(item.desCor)
     if (item.desAcabamento) values.finishes.add(item.desAcabamento)

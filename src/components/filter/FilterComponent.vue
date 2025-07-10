@@ -71,6 +71,7 @@
       v-model:dialog="showMoreFiltersDialog"
       :selectedFilters="selectedFilters"
       :primaryFilter="{ type: filterType, value: filterValue }"
+      :filteredItems="filteredItems"
       @apply-more-filters="onApplyMoreFilters"
     />
   </v-container>
@@ -80,6 +81,11 @@
 import { ref, defineEmits, computed } from 'vue'
 import MoreFilterComponent from '@/components/filter/MoreFilterComponent.vue'
 import { useFilterStore } from '@/stores/filterStore'
+import type ItemInterface from '@/interface/item/itemInterface'
+
+const props = defineProps<{
+  filteredItems?: ItemInterface[]
+}>()
 
 const emit = defineEmits<{
   (e: 'filter', payload: { type: string; value: string }): void
@@ -94,6 +100,7 @@ const filterOptions = ['Descrição', 'Código']
 const showMoreFiltersDialog = ref(false)
 
 const selectedFilters = computed(() => filterStore.selectedFilters)
+const filteredItems = computed(() => props.filteredItems)
 
 const emitFilter = () => {
   const filterPayload = {

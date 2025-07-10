@@ -1,6 +1,6 @@
 <template>
   <div class="filter-container">
-    <v-select
+    <v-autocomplete
       v-model="model"
       :label="label"
       :items="items"

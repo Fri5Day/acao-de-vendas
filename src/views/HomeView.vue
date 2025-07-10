@@ -1,7 +1,11 @@
 <template>
   <v-app>
     <NavbarComponent />
-    <FilterComponent @filter="applyFilter" @apply-more-filters="applyMoreFilters" />
+    <FilterComponent 
+      @filter="applyFilter" 
+      @apply-more-filters="applyMoreFilters"
+      :filteredItems="filteredItems"
+    />
     <v-container>
       <v-row justify="center" v-if="isLoading">
         <v-col cols="12" class="text-center">
@@ -79,6 +83,7 @@
     <Pagination
       :total-items="filteredItems.length"
       :current-page="currentPage"
+      :items-per-page="itemsPerPage"
       @page-changed="changePage"
     />
     <SeeMoreComponent
@@ -91,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { filterItems } from '@/utils/filter/filterService'
 import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
 import { getPaginatedItems } from '@/utils/pagination'
@@ -104,14 +109,13 @@ import Pagination from '@/components/PaginationComponent.vue'
 import SeeMoreComponent from '@/components/SeeMoreComponent.vue'
 import type FilterPayload from '@/interface/filter/filter'
 import type ItemInterface from '@/interface/item/itemInterface'
-import type { ItemDetalhado } from '@/interface/item/itemDetalhadoInterface'
 import type AdditionalFilters from '@/interface/filter/moreFilter'
 
 const itemStore = useItemStore()
 const filterStore = useFilterStore()
 
 const items = ref<ItemInterface[]>([])
-const selectedItem = ref<ItemDetalhado | null>(null)
+const selectedItem = ref<ItemInterface | null>(null)
 const isLoading = ref<boolean>(true)
 const errorMessage = ref('')
 const showErrorDialog = ref(false)
@@ -197,6 +201,18 @@ const filteredItems = computed(() => {
   return filtered
 })
 
+watch(filteredItems, (newFilteredItems) => {
+  const totalPages = Math.ceil(newFilteredItems.length / itemsPerPage.value)
+  
+  if (currentPage.value > totalPages && totalPages > 0) {
+    currentPage.value = 1
+  }
+  
+  if (newFilteredItems.length === 0) {
+    currentPage.value = 1
+  }
+}, { immediate: true })
+
 const paginatedItems = computed(() =>
   getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage.value)
 )
@@ -244,7 +260,7 @@ const applyMoreFilters = (payload: { filters: AdditionalFilters; primaryFilter: 
   currentPage.value = 1
 }
 
-const openItemDetails = (item: ItemDetalhado) => {
+const openItemDetails = (item: ItemInterface) => {
   selectedItem.value = item
   showSeeMoreDialog.value = true
 }
