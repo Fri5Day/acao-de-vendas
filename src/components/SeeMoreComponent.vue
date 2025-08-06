@@ -7,7 +7,6 @@
       </v-card-title>
       <v-divider />
       
-      <!-- Exibição de imagem -->
       <div v-if="hasImage" class="detail-image">
         <v-img
           :src="item.url"
@@ -18,7 +17,6 @@
         />
       </div>
 
-      <!-- Mensagem quando não há imagem -->
       <!-- <div v-else class="no-image-message">
         <v-icon icon="mdi-image-off" size="large" color="grey"></v-icon>
         <p class="text-grey">Nenhuma imagem disponível para este item</p>

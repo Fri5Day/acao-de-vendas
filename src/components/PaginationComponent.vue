@@ -31,7 +31,6 @@ const checkMobile = () => {
   currentItemsPerPage.value = isMobile.value ? 5 : props.itemsPerPage
 }
 
-// Watcher para sincronizar a página interna com a externa
 watch(() => props.currentPage, (newPage) => {
   page.value = newPage
 }, { immediate: true })
