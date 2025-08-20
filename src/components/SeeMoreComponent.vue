@@ -6,13 +6,33 @@
         <v-btn icon="mdi-close" variant="text" @click="closeDialog"></v-btn>
       </v-card-title>
       <v-divider />
-      
+
       <div v-if="hasImage" class="detail-image">
+        <v-carousel 
+          v-if="Array.isArray(item.url) && item.url.length > 1"
+          height="300"
+          show-arrows="hover"
+          hide-delimiter-background
+        >
+          <v-carousel-item
+            v-for="(imageUrl, index) in item.url"
+            :key="index"
+          >
+            <v-img
+              :src="imageUrl"
+              height="300"
+              class="image"
+              cover
+              alt="Imagem do item"
+            />
+          </v-carousel-item>
+        </v-carousel>
         <v-img
-          :src="item.url"
+          v-else
+          :src="Array.isArray(item.url) ? item.url[0] : item.url"
           :max-height="300"
           cover
-          class="single-image"
+          class="image"
           alt="Imagem do item"
         />
       </div>
@@ -67,7 +87,8 @@ const props = defineProps({
 })
 
 const hasImage = computed(() => {
-  return props.item?.url && props.item.url.trim() !== ''
+  if (!props.item?.url) return false
+  return Array.isArray(props.item.url) ? props.item.url.length > 0 : props.item.url.trim() !== ''
 })
 
 const fullCodeItem = computed(() => {
@@ -90,7 +111,7 @@ const closeDialog = () => {
   padding: 0 16px;
 }
 
-.single-image {
+.image {
   width: 100%;
   border-radius: 8px;
 }

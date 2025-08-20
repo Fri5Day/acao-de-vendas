@@ -50,10 +50,9 @@
         <div class="mt-5">
           <v-data-table
             :headers="responsiveHeaders"
-            :items="paginatedItems"
-            :items-per-page="itemsPerPage"
-            :page="currentPage"
-            hide-default-footer
+            :items="filteredItems"
+            v-model:page="page"
+            v-model:items-per-page="itemsPerPage"
           >
             <template #[`item.actions`]="{ item }">
               <v-tooltip text="Ver detalhes">
@@ -80,12 +79,7 @@
       :isActive="showErrorDialog"
       @update:isActive="showErrorDialog = $event"
     />
-    <Pagination
-      :total-items="filteredItems.length"
-      :current-page="currentPage"
-      :items-per-page="itemsPerPage"
-      @page-changed="changePage"
-    />
+
     <SeeMoreComponent
       v-if="selectedItem"
       :isActive="showSeeMoreDialog"
@@ -96,16 +90,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { filterItems } from '@/utils/filter/filterService'
 import { applyAdditionalFilters } from '@/utils/filter/moreFilterService'
-import { getPaginatedItems } from '@/utils/pagination'
 import { useItemStore } from '@/stores/itemStore'
 import { useFilterStore } from '@/stores/filterStore'
 import NavbarComponent from '@/components/NavbarComponent.vue'
 import FilterComponent from '@/components/filter/FilterComponent.vue'
 import ErrorComponent from '@/components/ErrorComponent.vue'
-import Pagination from '@/components/PaginationComponent.vue'
 import SeeMoreComponent from '@/components/SeeMoreComponent.vue'
 import type FilterPayload from '@/interface/filter/filter'
 import type ItemInterface from '@/interface/item/itemInterface'
@@ -122,7 +114,13 @@ const showErrorDialog = ref(false)
 const showSeeMoreDialog = ref(false)
 const isMobile = ref(window.innerWidth <= 600)
 const currentPage = ref(1)
-const itemsPerPage = computed(() => isMobile.value ? 5 : 10)
+const page = ref(1)
+const itemsPerPage = ref(10)
+
+window.addEventListener('resize', () => {
+  isMobile.value = window.innerWidth <= 600
+  itemsPerPage.value = isMobile.value ? 5 : 10
+})
 
 const activeFilters = ref({
   primary: { type: '', value: '' },
@@ -170,10 +168,6 @@ const getActiveFiltersText = computed(() => {
     .join('\n')
 })
 
-const updateIsMobile = () => {
-  isMobile.value = window.innerWidth <= 600
-}
-
 const filteredItems = computed(() => {
   if (!activeFilters.value.primary.value && 
       !Object.values(activeFilters.value.additional).some(filter => 
@@ -201,28 +195,11 @@ const filteredItems = computed(() => {
   return filtered
 })
 
-watch(filteredItems, (newFilteredItems) => {
-  const totalPages = Math.ceil(newFilteredItems.length / itemsPerPage.value)
-  
-  if (currentPage.value > totalPages && totalPages > 0) {
-    currentPage.value = 1
-  }
-  
-  if (newFilteredItems.length === 0) {
-    currentPage.value = 1
-  }
-}, { immediate: true })
-
-const paginatedItems = computed(() =>
-  getPaginatedItems(filteredItems.value, currentPage.value, itemsPerPage.value)
+const responsiveHeaders = computed(() =>
+  isMobile.value
+    ? headers.value.filter((header) => header.key === 'descricao' || header.key === 'actions')
+    : headers.value
 )
-
-const responsiveHeaders = computed(() => {
-  if (isMobile.value) {
-    return headers.value.filter((header) => header.key === 'descricao' || header.key === 'actions')
-  }
-  return headers.value
-})
 
 const updateLoadingState = (loading: boolean) => {
   isLoading.value = loading
@@ -265,13 +242,6 @@ const openItemDetails = (item: ItemInterface) => {
   showSeeMoreDialog.value = true
 }
 
-const changePage = (page: number) => {
-  currentPage.value = page
-}
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateIsMobile)
-})
 </script>
 
 <style scoped>
